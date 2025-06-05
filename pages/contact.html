@@ -2,101 +2,103 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>신희윤 - 연락처</title>
+  <title>연락처 - 신희윤</title>
   <link rel="stylesheet" href="../assets/css/style.css" />
   <style>
-    .contact-section {
-      max-width: 900px;
-      margin: 4rem auto;
-      padding: 2rem;
-      background-color: #fff;
-      border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    body {
+      background: linear-gradient(to right, #f2f3f7, #e0e5ec);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      font-family: 'Segoe UI', sans-serif;
     }
-    .contact-section h1 {
+
+    .contact-card {
+      max-width: 400px;
+      margin: 6rem auto;
+      padding: 2.5rem;
+      border-radius: 20px;
+      background: #fff;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
       text-align: center;
-      margin-bottom: 2rem;
-      font-size: 2rem;
-      color: #222;
     }
-    .resume, .business-card {
-      margin-bottom: 2rem;
-    }
-    .resume h2, .business-card h2 {
-      font-size: 1.2rem;
-      color: #444;
-      border-left: 4px solid #999;
-      padding-left: 1rem;
+
+    .contact-card h1 {
+      font-size: 1.8rem;
       margin-bottom: 1rem;
-    }
-    .info-block {
-      padding-left: 1.5rem;
-    }
-    .info-block p {
-      margin: 0.3rem 0;
       color: #333;
     }
-    .highlight {
-      font-weight: bold;
+
+    .contact-item {
+      margin: 1.2rem 0;
+      font-size: 1.1rem;
+      color: #444;
     }
-    .badge {
-      display: inline-block;
-      padding: 0.3rem 0.8rem;
-      background-color: #f0f0f0;
-      border-radius: 12px;
-      margin: 0.2rem;
-      font-size: 0.9rem;
-    }
-    .link {
+
+    .contact-item a {
       color: #1a73e8;
       text-decoration: none;
+      font-weight: bold;
     }
-    .link:hover {
+
+    .contact-item a:hover {
       text-decoration: underline;
+    }
+
+    footer {
+      margin-top: auto;
+      padding: 1rem 0;
+      text-align: center;
+      font-size: 0.85rem;
+      color: #777;
+    }
+
+    nav {
+      background: transparent;
+      text-align: center;
+      padding: 1rem;
+    }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+    }
+
+    nav ul li a {
+      text-decoration: none;
+      color: #555;
+      font-weight: 500;
+    }
+
+    nav ul li a:hover {
+      color: #000;
     }
   </style>
 </head>
 <body>
-  <header>
-    <nav>
-      <ul>
-        <li><a href="../index.html">홈</a></li>
-        <li><a href="lotto.html">복권 추첨기</a></li>
-        <li><a href="contact.html">연락처</a></li>
-      </ul>
-    </nav>
-  </header>
 
-  <main class="contact-section">
-    <h1>신희윤 Shin Hee Youn</h1>
+  <nav>
+    <ul>
+      <li><a href="../index.html">홈</a></li>
+      <li><a href="contact.html">연락처</a></li>
+    </ul>
+  </nav>
 
-    <div class="resume">
-      <h2>자기소개</h2>
-      <div class="info-block">
-        <p>명지대학교 컴퓨터공학과 졸업, 정보처리기사 자격 보유.</p>
-        <p>Java, Python, VBA 등 다양한 언어를 활용한 프로젝트 경험 보유.</p>
-        <p>Oracle, Docker, Spring Boot 등 실무형 기술 경험.</p>
-        <p>창의력과 소통 능력을 바탕으로 기업 프로그램 개발 및 납품 경험 보유.</p>
-        <p><a class="link" href="https://github.com/ShinHeeYoun" target="_blank">📁 GitHub 포트폴리오 보기</a></p>
-      </div>
+  <div class="contact-card">
+    <h1>신희윤 연락처</h1>
+    <div class="contact-item">
+      <strong>010-5184-5187</strong>
     </div>
-
-    <div class="business-card">
-      <h2>회사 명함</h2>
-      <div class="info-block">
-        <p class="highlight">Global Reporting Solution "Crownix Report 8.0"</p>
-        <p><strong>신 희 윤 Shin, Hee Youn</strong></p>
-        <p>BI솔루션사업본부 서비스지원팀 / 사원</p>
-        <p>M2Soft Co., Ltd. (주)엠투소프트</p>
-        <p>Tel: +82-2-2188-8542 | Fax: +82-2-2188-8508</p>
-        <p>Email: <a class="link" href="mailto:shin502103@m2soft.co.kr">shin502103@m2soft.co.kr</a></p>
-        <p>Website: <a class="link" href="http://www.m2soft.co.kr" target="_blank">www.m2soft.co.kr</a></p>
-      </div>
+    <div class="contact-item">
+      <a href="mailto:shin502103@naver.com">shin502103@m2soft.co.kr</a>
     </div>
-  </main>
+  </div>
 
   <footer>
-    <p>© 2025 신희윤. All rights reserved.</p>
+    © 2025 ShineHeeYoun. All rights reserved.
   </footer>
+
 </body>
 </html>
