@@ -5,13 +5,13 @@
   <title>혼자 체스 두기</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <!-- chessboard.js 스타일 -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard.js/1.0.0/chessboard.min.css">
+  <!-- chessboard.js 스타일 (수정된 CDN) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
   
   <style>
     body {
       font-family: 'Arial', sans-serif;
-      background: #f9f9f9;
+      background-color: #f2f2f2;
       text-align: center;
       padding: 30px;
     }
@@ -27,9 +27,9 @@
     }
 
     footer {
-      margin-top: 30px;
+      margin-top: 40px;
       font-size: 0.9em;
-      color: #888;
+      color: #777;
     }
   </style>
 </head>
@@ -38,11 +38,13 @@
   <h1>혼자 체스 두기</h1>
   <div id="board"></div>
 
-  <!-- 체스 규칙 처리용 chess.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.12.0/chess.min.js"></script>
-  
-  <!-- 체스판 UI용 chessboard.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard.js/1.0.0/chessboard.min.js"></script>
+  <!-- chess.js (수정된 CDN) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.12.1/chess.min.js"
+          integrity="sha512-rIescAjPgXHz3WaxrSjaOl5iZfvBVIehYe+EF+d+DAdFNgV10QBT8d5APBjcGFKES0iVUYjBilvpck7gOe7CLg=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <!-- chessboard.js (수정된 CDN) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
 
   <script>
     const game = new Chess();
@@ -54,19 +56,19 @@
         const move = game.move({
           from: source,
           to: target,
-          promotion: 'q' // 자동 승진: 퀸
+          promotion: 'q' // 자동으로 퀸 승진
         });
 
         if (move === null) return 'snapback'; // 잘못된 수는 원위치
       },
       onSnapEnd: function () {
-        board.position(game.fen());
+        board.position(game.fen()); // UI를 내부 상태와 동기화
       }
     });
   </script>
 
   <footer>
-    © 2025 Shin Hee Youn | GitHub Pages 체스 프로젝트
+    © 2025 Shin Hee Youn | 체스 프로젝트
   </footer>
 
 </body>
