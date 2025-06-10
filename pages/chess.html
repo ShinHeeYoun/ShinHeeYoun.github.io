@@ -1,43 +1,73 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
   <meta charset="UTF-8">
   <title>혼자 체스 두기</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- chessboard.js 스타일 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard.js/1.0.0/chessboard.min.css">
+  
   <style>
-    body { text-align: center; font-family: Arial; background: #f0f0f0; padding: 20px; }
-    #board { width: 400px; margin: auto; }
-    h1 { margin-bottom: 20px; }
+    body {
+      font-family: 'Arial', sans-serif;
+      background: #f9f9f9;
+      text-align: center;
+      padding: 30px;
+    }
+
+    h1 {
+      font-size: 2em;
+      margin-bottom: 20px;
+    }
+
+    #board {
+      width: 400px;
+      margin: auto;
+    }
+
+    footer {
+      margin-top: 30px;
+      font-size: 0.9em;
+      color: #888;
+    }
   </style>
 </head>
 <body>
+
   <h1>혼자 체스 두기</h1>
   <div id="board"></div>
 
+  <!-- 체스 규칙 처리용 chess.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.12.0/chess.min.js"></script>
+  
+  <!-- 체스판 UI용 chessboard.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard.js/1.0.0/chessboard.min.js"></script>
+
   <script>
     const game = new Chess();
+
     const board = Chessboard('board', {
       draggable: true,
       position: 'start',
-      onDrop: function (source, target, piece, newPos, oldPos, orientation) {
+      onDrop: function (source, target) {
         const move = game.move({
           from: source,
           to: target,
-          promotion: 'q'
+          promotion: 'q' // 자동 승진: 퀸
         });
 
-        if (move === null) return 'snapback';
+        if (move === null) return 'snapback'; // 잘못된 수는 원위치
+      },
+      onSnapEnd: function () {
+        board.position(game.fen());
       }
     });
-
-    // 보드 상태를 game과 동기화
-    function updateBoard() {
-      board.position(game.fen());
-    }
-
-    board.onSnapEnd = updateBoard;
   </script>
+
+  <footer>
+    © 2025 Shin Hee Youn | GitHub Pages 체스 프로젝트
+  </footer>
+
 </body>
 </html>
