@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>혼자 체스 두기</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard.js/1.0.0/chessboard.min.css">
+  <style>
+    body { text-align: center; font-family: Arial; background: #f0f0f0; padding: 20px; }
+    #board { width: 400px; margin: auto; }
+    h1 { margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+  <h1>혼자 체스 두기</h1>
+  <div id="board"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.12.0/chess.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard.js/1.0.0/chessboard.min.js"></script>
+  <script>
+    const game = new Chess();
+    const board = Chessboard('board', {
+      draggable: true,
+      position: 'start',
+      onDrop: function (source, target, piece, newPos, oldPos, orientation) {
+        const move = game.move({
+          from: source,
+          to: target,
+          promotion: 'q'
+        });
+
+        if (move === null) return 'snapback';
+      }
+    });
+
+    // 보드 상태를 game과 동기화
+    function updateBoard() {
+      board.position(game.fen());
+    }
+
+    board.onSnapEnd = updateBoard;
+  </script>
+</body>
+</html>
