@@ -53,7 +53,7 @@ export default function CalculatorView() {
 
   return (
     <div className="mx-auto max-w-xs">
-      <div className="mb-4 rounded-md border border-gray-300 p-4 text-right text-2xl font-mono break-all">
+      <div className="mb-4 rounded-md border border-border bg-surface p-4 text-right text-2xl font-mono break-all">
         {state.display}
       </div>
       <div className="grid grid-cols-4 gap-2">
@@ -62,9 +62,11 @@ export default function CalculatorView() {
             key={index}
             type="button"
             onClick={() => handleClick(button)}
-            className={`rounded-md border border-gray-300 p-3 text-lg hover:bg-gray-100 ${
-              button.kind === 'clear' ? 'col-span-4' : ''
-            }`}
+            className={`rounded-md border p-3 text-lg transition-colors ${
+              button.kind === 'equals'
+                ? 'border-accent bg-accent text-white hover:bg-accent-hover'
+                : 'border-border hover:bg-surface'
+            } ${button.kind === 'clear' ? 'col-span-4' : ''}`}
           >
             {button.label}
           </button>
