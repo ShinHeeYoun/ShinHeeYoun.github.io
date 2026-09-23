@@ -99,7 +99,7 @@ export default function Write() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-12">
+    <main className="w-full px-6 py-12 md:px-12">
       <h1 className="text-2xl font-bold">Write</h1>
 
       <p className="mt-4 rounded-md bg-amber-50 p-3 text-sm text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
