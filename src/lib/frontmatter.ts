@@ -4,7 +4,8 @@ export type Frontmatter = {
 }
 
 export function parseFrontmatter(raw: string): { frontmatter: Frontmatter; body: string } {
-  const match = raw.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/)
+  const normalized = raw.replace(/\r\n/g, '\n')
+  const match = normalized.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/)
   if (!match) {
     throw new Error('Missing frontmatter block')
   }
