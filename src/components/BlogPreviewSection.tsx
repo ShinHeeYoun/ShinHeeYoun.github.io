@@ -1,4 +1,4 @@
-import { posts } from '../data/posts'
+import { posts } from '../lib/posts'
 import BlogPreviewCard from './BlogPreviewCard'
 
 export default function BlogPreviewSection() {
