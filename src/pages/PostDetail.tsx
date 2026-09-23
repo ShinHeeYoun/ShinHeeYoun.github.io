@@ -24,6 +24,7 @@ export default function PostDetail() {
       </Link>
       <h1 className="mt-4 text-2xl font-bold">{post.title}</h1>
       <p className="mt-1 text-sm text-gray-500">{post.date}</p>
+      {/* No HTML sanitization: post bodies come only from files in this repo, writable only via a PAT with Contents: write access — same trust level as any other source file. */}
       <div
         className="mt-6"
         dangerouslySetInnerHTML={{ __html: marked.parse(post.body, { async: false }) as string }}

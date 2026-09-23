@@ -1,8 +1,16 @@
 import { useState } from 'react'
 import { generateSlug, posts, type Post } from '../lib/posts'
-import { serializeFrontmatter } from '../lib/frontmatter'
+import { parseFrontmatter, serializeFrontmatter } from '../lib/frontmatter'
 import { createOrUpdateFile, deleteFile, getFile } from '../lib/github'
 import { getStoredPat, setStoredPat } from '../lib/pat'
+
+function getLocalDateString(): string {
+  const d = new Date()
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
 
 export default function Write() {
   const [pat, setPat] = useState(getStoredPat())
@@ -12,6 +20,7 @@ export default function Write() {
   const [isPublishing, setIsPublishing] = useState(false)
   const [editingSlug, setEditingSlug] = useState<string | null>(null)
   const [editingSha, setEditingSha] = useState<string | null>(null)
+  const [editingDate, setEditingDate] = useState<string | null>(null)
   const [isLoadingPost, setIsLoadingPost] = useState<string | null>(null)
 
   function resetForm() {
@@ -19,6 +28,7 @@ export default function Write() {
     setBody('')
     setEditingSlug(null)
     setEditingSha(null)
+    setEditingDate(null)
   }
 
   async function handlePublish() {
@@ -26,7 +36,7 @@ export default function Write() {
     setIsPublishing(true)
     try {
       setStoredPat(pat)
-      const date = new Date().toISOString().slice(0, 10)
+      const date = editingDate ?? getLocalDateString()
       const slug = editingSlug ?? generateSlug(date)
       const fileContent = serializeFrontmatter({ title, date }, body)
       const message = editingSlug ? `post: update ${title}` : `post: ${title}`
@@ -53,10 +63,10 @@ export default function Write() {
       setStoredPat(pat)
       const path = `src/content/posts/${post.slug}.md`
       const { content, sha } = await getFile(path, pat)
-      const bodyStart = content.indexOf('\n---\n')
-      const parsedBody = bodyStart === -1 ? content : content.slice(bodyStart + 5).trim()
-      setTitle(post.title)
+      const { frontmatter, body: parsedBody } = parseFrontmatter(content)
+      setTitle(frontmatter.title)
       setBody(parsedBody)
+      setEditingDate(frontmatter.date)
       setEditingSlug(post.slug)
       setEditingSha(sha)
     } catch (error) {
@@ -166,7 +176,7 @@ export default function Write() {
               <button
                 type="button"
                 onClick={() => handleEdit(post)}
-                disabled={isLoadingPost === post.slug || !pat}
+                disabled={isLoadingPost !== null || !pat}
                 className="text-sm text-blue-600 underline disabled:opacity-50"
               >
                 {isLoadingPost === post.slug ? '불러오는 중...' : '수정'}
@@ -174,7 +184,7 @@ export default function Write() {
               <button
                 type="button"
                 onClick={() => handleDelete(post)}
-                disabled={isLoadingPost === post.slug || !pat}
+                disabled={isLoadingPost !== null || !pat}
                 className="text-sm text-red-600 underline disabled:opacity-50"
               >
                 삭제
