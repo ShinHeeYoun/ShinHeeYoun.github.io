@@ -4,10 +4,12 @@ export type ToolMeta = {
   description: string
 }
 
-export const tools: ToolMeta[] = [
+export const tools = [
   {
     id: 'calculator',
     name: '계산기',
     description: '기본 사칙연산을 지원하는 버튼식 계산기입니다.',
   },
-]
+] as const satisfies readonly ToolMeta[]
+
+export type ToolId = (typeof tools)[number]['id']

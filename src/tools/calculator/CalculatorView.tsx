@@ -53,7 +53,7 @@ export default function CalculatorView() {
 
   return (
     <div className="mx-auto max-w-xs">
-      <div className="mb-4 rounded-md border border-gray-300 p-4 text-right text-2xl font-mono">
+      <div className="mb-4 rounded-md border border-gray-300 p-4 text-right text-2xl font-mono break-all">
         {state.display}
       </div>
       <div className="grid grid-cols-4 gap-2">
