@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import type { Post } from '../lib/posts'
 
 type Props = {
@@ -6,10 +7,12 @@ type Props = {
 
 export default function BlogPreviewCard({ post }: Props) {
   return (
-    <article className="rounded-lg border border-gray-200 p-4 shadow-sm">
-      <h3 className="text-lg font-semibold">{post.title}</h3>
-      <p className="mt-1 text-sm text-gray-500">{post.date}</p>
-      <p className="mt-2 text-gray-700">{post.excerpt}</p>
-    </article>
+    <Link to={`/blog/${post.slug}`} className="block">
+      <article className="rounded-lg border border-gray-200 p-4 shadow-sm hover:border-gray-400">
+        <h3 className="text-lg font-semibold">{post.title}</h3>
+        <p className="mt-1 text-sm text-gray-500">{post.date}</p>
+        <p className="mt-2 text-gray-700">{post.excerpt}</p>
+      </article>
+    </Link>
   )
 }
