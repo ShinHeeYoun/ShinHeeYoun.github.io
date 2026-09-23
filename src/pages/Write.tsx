@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { generateSlug, posts, type Post } from '../lib/posts'
 import { serializeFrontmatter } from '../lib/frontmatter'
-import { createOrUpdateFile, getFile } from '../lib/github'
+import { createOrUpdateFile, deleteFile, getFile } from '../lib/github'
 import { getStoredPat, setStoredPat } from '../lib/pat'
 
 export default function Write() {
@@ -61,6 +61,28 @@ export default function Write() {
       setEditingSha(sha)
     } catch (error) {
       setStatus(error instanceof Error ? error.message : '글을 불러오지 못했습니다.')
+    } finally {
+      setIsLoadingPost(null)
+    }
+  }
+
+  async function handleDelete(post: Post) {
+    if (!window.confirm(`"${post.title}" 글을 삭제할까요? 되돌릴 수 없습니다.`)) {
+      return
+    }
+    setStatus(null)
+    setIsLoadingPost(post.slug)
+    try {
+      setStoredPat(pat)
+      const path = `src/content/posts/${post.slug}.md`
+      const { sha } = await getFile(path, pat)
+      await deleteFile(path, `post: delete ${post.title}`, sha, pat)
+      setStatus('삭제됨 — 배포까지 약 1분 정도 걸려요.')
+      if (editingSlug === post.slug) {
+        resetForm()
+      }
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : '삭제 중 오류가 발생했습니다.')
     } finally {
       setIsLoadingPost(null)
     }
@@ -140,14 +162,24 @@ export default function Write() {
             <span>
               {post.title} <span className="text-xs text-gray-500">({post.date})</span>
             </span>
-            <button
-              type="button"
-              onClick={() => handleEdit(post)}
-              disabled={isLoadingPost === post.slug || !pat}
-              className="text-sm text-blue-600 underline disabled:opacity-50"
-            >
-              {isLoadingPost === post.slug ? '불러오는 중...' : '수정'}
-            </button>
+            <span className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => handleEdit(post)}
+                disabled={isLoadingPost === post.slug || !pat}
+                className="text-sm text-blue-600 underline disabled:opacity-50"
+              >
+                {isLoadingPost === post.slug ? '불러오는 중...' : '수정'}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDelete(post)}
+                disabled={isLoadingPost === post.slug || !pat}
+                className="text-sm text-red-600 underline disabled:opacity-50"
+              >
+                삭제
+              </button>
+            </span>
           </li>
         ))}
       </ul>
