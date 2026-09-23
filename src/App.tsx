@@ -5,6 +5,7 @@ import Blog from './pages/Blog'
 import PostDetail from './pages/PostDetail'
 import Write from './pages/Write'
 import Tools from './pages/Tools'
+import ToolPage from './pages/ToolPage'
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
         <Route path="/blog/:slug" element={<PostDetail />} />
         <Route path="/write" element={<Write />} />
         <Route path="/tools" element={<Tools />} />
+        <Route path="/tools/:id" element={<ToolPage />} />
       </Routes>
     </>
   )
