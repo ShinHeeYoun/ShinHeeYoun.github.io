@@ -60,7 +60,7 @@ working):
 | surface | `17 24 32` (#111820) | `243 239 228` |
 | border | `28 39 51` (#1c2733) | `221 215 200` |
 | foreground | `230 237 243` | `31 41 55` |
-| muted | `125 139 153` | `107 114 128` |
+| muted | `125 139 153` | `87 96 110` (darker than first drafted `107 114 128`, for contrast on the cream background) |
 | accent | `61 220 151` (#3ddc97) | `4 120 87` |
 | accent-hover | lighter green | darker green |
 
