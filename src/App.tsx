@@ -7,6 +7,7 @@ import Write from './pages/Write'
 import Tools from './pages/Tools'
 import ToolPage from './pages/ToolPage'
 import Projects from './pages/Projects'
+import About from './pages/About'
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
         <Route path="/tools" element={<Tools />} />
         <Route path="/tools/:id" element={<ToolPage />} />
         <Route path="/projects" element={<Projects />} />
+        <Route path="/about" element={<About />} />
       </Routes>
     </>
   )
