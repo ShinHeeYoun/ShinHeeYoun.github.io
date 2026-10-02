@@ -1,6 +1,15 @@
-import { Link } from 'react-router-dom'
+import { Link, NavLink } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { applyTheme, getStoredTheme, resolveInitialTheme, setStoredTheme, type Theme } from '../lib/theme'
+
+const LINKS = [
+  { to: '/', label: 'Home', end: true },
+  { to: '/projects', label: 'Projects', end: false },
+  { to: '/blog', label: 'Blog', end: false },
+  { to: '/tools', label: 'Tools', end: false },
+  { to: '/about', label: 'About', end: false },
+  { to: '/write', label: 'Write', end: false },
+]
 
 export default function NavBar() {
   const [theme, setTheme] = useState<Theme>(() => resolveInitialTheme(getStoredTheme()))
@@ -16,20 +25,27 @@ export default function NavBar() {
   }
 
   return (
-    <nav className="border-b border-border">
-      <div className="flex w-full items-center gap-6 px-6 py-4 md:px-12">
-        <Link to="/" className="font-semibold">
-          Home
+    <nav className="border-b border-border font-mono text-sm">
+      <div className="flex w-full flex-wrap items-center gap-x-6 gap-y-2 px-6 py-4 md:px-12">
+        <Link to="/" className="mr-2 font-bold text-accent">
+          ~/shinheeyoun
         </Link>
-        <Link to="/blog" className="hover:text-accent">
-          Blog
-        </Link>
-        <Link to="/write" className="hover:text-accent">
-          Write
-        </Link>
-        <Link to="/tools" className="hover:text-accent">
-          Tools
-        </Link>
+        {LINKS.map((link) => (
+          <NavLink
+            key={link.to}
+            to={link.to}
+            end={link.end}
+            className={({ isActive }) =>
+              isActive ? 'text-accent' : 'text-muted transition-colors hover:text-foreground'
+            }
+          >
+            {({ isActive }) => (
+              <>
+                <span className={isActive ? '' : 'invisible'}>&gt;</span> {link.label}
+              </>
+            )}
+          </NavLink>
+        ))}
         <button
           type="button"
           onClick={toggleTheme}
