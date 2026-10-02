@@ -19,8 +19,8 @@ export function setStoredTheme(theme: Theme): void {
   }
 }
 
-export function getSystemTheme(): Theme {
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+export function resolveInitialTheme(stored: Theme | null): Theme {
+  return stored ?? 'dark'
 }
 
 export function applyTheme(theme: Theme): void {

@@ -7,14 +7,12 @@
     <script>
       (function () {
         try {
-          var stored = localStorage.getItem('theme')
-          var isDark =
-            stored === 'dark' ||
-            (stored !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)
-          if (isDark) {
+          if (localStorage.getItem('theme') !== 'light') {
             document.documentElement.classList.add('dark')
           }
-        } catch (e) {}
+        } catch (e) {
+          document.documentElement.classList.add('dark')
+        }
       })()
     </script>
   </head>

@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { applyTheme, getStoredTheme, getSystemTheme, setStoredTheme, type Theme } from '../lib/theme'
+import { applyTheme, getStoredTheme, resolveInitialTheme, setStoredTheme, type Theme } from '../lib/theme'
 
 export default function NavBar() {
-  const [theme, setTheme] = useState<Theme>(() => getStoredTheme() ?? getSystemTheme())
+  const [theme, setTheme] = useState<Theme>(() => resolveInitialTheme(getStoredTheme()))
 
   useEffect(() => {
     applyTheme(theme)
