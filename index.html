@@ -3,9 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Shinheeyoun</title>
+    <title>ShinHeeYoun</title>
     <script>
       (function () {
+        // Keep in sync with resolveInitialTheme() in src/lib/theme.ts (default is dark unless 'light' is stored).
         try {
           if (localStorage.getItem('theme') !== 'light') {
             document.documentElement.classList.add('dark')

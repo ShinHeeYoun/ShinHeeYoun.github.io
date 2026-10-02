@@ -145,7 +145,7 @@ export default function Write() {
           type="button"
           onClick={handlePublish}
           disabled={isPublishing || !pat || !title || !body}
-          className="rounded-md bg-accent px-4 py-2 text-white transition-colors hover:bg-accent-hover disabled:opacity-50"
+          className="rounded-md bg-accent px-4 py-2 text-background transition-colors hover:bg-accent-hover disabled:opacity-50"
         >
           {isPublishing ? '게시 중...' : editingSlug ? '수정 게시' : '게시'}
         </button>

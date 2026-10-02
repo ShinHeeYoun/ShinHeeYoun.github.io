@@ -10,6 +10,7 @@
   --color-surface: 243 239 228;
   --color-accent: 4 120 87;
   --color-accent-hover: 6 95 70;
+  color-scheme: light;
 }
 
 .dark {
@@ -20,6 +21,7 @@
   --color-surface: 17 24 32;
   --color-accent: 61 220 151;
   --color-accent-hover: 110 231 183;
+  color-scheme: dark;
 }
 
 @layer base {
@@ -35,7 +37,8 @@
     @apply rounded-lg border border-border bg-surface p-4 transition-all duration-200;
   }
 
-  .card:hover {
+  a:hover > .card,
+  a:focus-visible > .card {
     border-color: rgb(var(--color-accent));
     box-shadow: 0 0 24px rgb(var(--color-accent) / 0.15);
   }
@@ -46,6 +49,7 @@
 
   .card-title::before {
     content: '●';
+    content: '●' / '';
     color: rgb(var(--color-accent));
     font-size: 0.6em;
     margin-right: 0.5em;

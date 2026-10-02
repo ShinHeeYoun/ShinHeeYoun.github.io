@@ -64,7 +64,7 @@ export default function CalculatorView() {
             onClick={() => handleClick(button)}
             className={`rounded-md border p-3 text-lg transition-colors ${
               button.kind === 'equals'
-                ? 'border-accent bg-accent text-white hover:bg-accent-hover'
+                ? 'border-accent bg-accent text-background hover:bg-accent-hover'
                 : 'border-border hover:bg-surface'
             } ${button.kind === 'clear' ? 'col-span-4' : ''}`}
           >

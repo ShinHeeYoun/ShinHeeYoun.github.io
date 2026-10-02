@@ -41,7 +41,7 @@ export default function NavBar() {
           >
             {({ isActive }) => (
               <>
-                <span className={isActive ? '' : 'invisible'}>&gt;</span> {link.label}
+                <span className={isActive ? '' : 'invisible'} aria-hidden="true">&gt;</span> {link.label}
               </>
             )}
           </NavLink>

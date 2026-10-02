@@ -19,6 +19,7 @@ export function setStoredTheme(theme: Theme): void {
   }
 }
 
+// Keep in sync with the inline script in index.html, which runs before React to avoid a theme flash.
 export function resolveInitialTheme(stored: Theme | null): Theme {
   return stored ?? 'dark'
 }

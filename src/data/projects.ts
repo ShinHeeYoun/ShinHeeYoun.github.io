@@ -3,6 +3,7 @@ export type Project = {
   title: string
   summary: string
   tags: string[]
+  // internal route only — rendered through a router Link
   href?: string
 }
 
