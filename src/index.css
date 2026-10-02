@@ -30,6 +30,33 @@
   }
 }
 
+@layer components {
+  .card {
+    @apply rounded-lg border border-border bg-surface p-4 transition-all duration-200;
+  }
+
+  .card:hover {
+    border-color: rgb(var(--color-accent));
+    box-shadow: 0 0 24px rgb(var(--color-accent) / 0.15);
+  }
+
+  .card-title {
+    @apply font-mono text-lg font-semibold;
+  }
+
+  .card-title::before {
+    content: '●';
+    color: rgb(var(--color-accent));
+    font-size: 0.6em;
+    margin-right: 0.5em;
+    vertical-align: middle;
+  }
+
+  .tag {
+    @apply rounded border border-border px-2 py-0.5 font-mono text-xs text-muted;
+  }
+}
+
 body {
   @apply bg-background text-foreground transition-colors duration-200;
 }
