@@ -3,22 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Shinheeyoun</title>
+    <title>ShinHeeYoun</title>
     <script>
       (function () {
+        // Keep in sync with resolveInitialTheme() in src/lib/theme.ts (default is dark unless 'light' is stored).
         try {
-          var stored = localStorage.getItem('theme')
-          var isDark =
-            stored === 'dark' ||
-            (stored !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)
-          if (isDark) {
+          if (localStorage.getItem('theme') !== 'light') {
             document.documentElement.classList.add('dark')
           }
-        } catch (e) {}
+        } catch (e) {
+          document.documentElement.classList.add('dark')
+        }
       })()
     </script>
-    <script type="module" crossorigin src="/assets/index-AaWnAGRy.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-Djt-uHA8.css">
+    <script type="module" crossorigin src="/assets/index-htZOa4Bm.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-DdmtZWBT.css">
   </head>
   <body>
     <div id="root"></div>
