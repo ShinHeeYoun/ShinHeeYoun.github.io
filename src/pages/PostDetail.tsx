@@ -22,7 +22,7 @@ export default function PostDetail() {
 
   return (
     <main className="w-full px-6 py-12 md:px-12">
-      <div className="max-w-3xl">
+      <div className="mx-auto max-w-3xl">
         <Link to="/blog" className="text-sm text-accent underline">
           ← 목록으로
         </Link>
