@@ -6,7 +6,7 @@ export default function FeaturedProjects() {
   return (
     <section>
       <div className="flex items-baseline justify-between">
-        <h2 className="text-xl font-semibold">대표 프로젝트</h2>
+        <h2 className="text-xl font-semibold">주요 구성</h2>
         <Link to="/projects" className="font-mono text-sm text-accent hover:text-accent-hover">
           전체 보기 →
         </Link>

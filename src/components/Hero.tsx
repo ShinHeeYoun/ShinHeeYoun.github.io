@@ -10,8 +10,8 @@ export default function Hero() {
           _
         </span>
       </h1>
-      <p className="mt-3 text-lg text-foreground/90">백엔드 / 인프라 엔지니어</p>
-      <p className="mt-2 max-w-xl font-sans text-muted">장애의 원인을 로그에서 끝까지 추적합니다.</p>
+      <p className="mt-3 text-lg text-foreground/90">개발 연습 페이지</p>
+      <p className="mt-2 max-w-xl font-sans text-muted">github homepage with Claude</p>
       <div className="mt-6 flex flex-wrap gap-3 text-sm">
         <Link
           to="/projects"

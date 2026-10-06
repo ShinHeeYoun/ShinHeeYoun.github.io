@@ -1,7 +1,7 @@
 import Hero from '../components/Hero'
 import FeaturedProjects from '../components/FeaturedProjects'
 import BlogPreviewSection from '../components/BlogPreviewSection'
-import ContactSection from '../components/ContactSection'
+import SourceSection from '../components/SourceSection'
 
 export default function Home() {
   return (
@@ -10,7 +10,7 @@ export default function Home() {
       <div className="mt-12 space-y-14">
         <FeaturedProjects />
         <BlogPreviewSection />
-        <ContactSection />
+        <SourceSection />
       </div>
     </main>
   )

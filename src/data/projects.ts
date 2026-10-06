@@ -3,41 +3,80 @@ export type Project = {
   title: string
   summary: string
   tags: string[]
-  // internal route only — rendered through a router Link
-  href?: string
+  overview: string
+  points: string[]
 }
 
 export const projects: Project[] = [
   {
-    id: 'reporting-queue-analysis',
-    title: '리포팅 서버 요청 적체 원인 분석',
-    summary:
-      '주기적 "멈춤" 현상을 로그로 추적. 개별 요청 지연이 아니라 요청 총량이 처리 용량을 넘어 내부 큐가 적체되고, 상위 timeout이 만료되던 구조를 규명하고 근거 지표와 권고안을 정리.',
-    tags: ['로그분석', 'Tomcat', '용량산정'],
+    id: 'terminal-theme',
+    title: '터미널 테마 디자인',
+    summary: '색상 토큰 한 곳만 바꿔 사이트 전체의 분위기를 바꾸는 다크 터미널 디자인.',
+    tags: ['Tailwind', 'CSS 변수', '다크모드'],
+    overview:
+      '사이트의 색은 컴포넌트마다 정해 두지 않고 background, accent 같은 의미 기반 토큰(CSS 변수)으로 정의해 둡니다. 그래서 index.css의 토큰 값 몇 줄만 바꾸면 모든 페이지의 색이 한 번에 바뀝니다.',
+    points: [
+      '다크 터미널이 기본값이고, 헤더의 토글로 크림색 라이트 테마로 바꿀 수 있습니다. 선택은 브라우저(localStorage)에 저장됩니다.',
+      '저장된 값이 없으면 항상 다크로 시작합니다. 화면이 그려지기 전에 index.html의 작은 스크립트가 테마를 먼저 적용해서 깜빡임이 없습니다.',
+      '제목과 메뉴는 모노스페이스 글꼴을 쓰고, 카드와 태그는 공용 CSS 클래스로 모양을 통일했습니다.',
+      '히어로의 깜빡이는 커서는 "모션 줄이기" 설정을 켜 둔 사용자에게는 멈춥니다.',
+    ],
   },
   {
-    id: 'was-thread-leak-oom',
-    title: 'WAS 스레드 누수로 인한 OOM/행 장애 분석',
-    summary: '반복 재기동 징후와 스레드 누수를 로그·덤프로 연결해 원인을 특정.',
-    tags: ['JVM', '스레드덤프', 'Tomcat'],
+    id: 'blog-editor',
+    title: '블로그와 브라우저 글쓰기',
+    summary: '글은 마크다운 파일로 저장되고, 글쓰기 페이지에서 바로 작성·수정·삭제할 수 있습니다.',
+    tags: ['Markdown', 'GitHub API', 'React'],
+    overview:
+      '글 하나는 src/content/posts 폴더의 마크다운 파일 하나입니다. 빌드할 때 모든 글을 읽어 목록과 상세 페이지를 만들고, Write 페이지에서 쓴 글은 GitHub API로 저장소에 직접 커밋됩니다. 별도 서버나 데이터베이스는 없습니다.',
+    points: [
+      '각 파일은 제목과 날짜를 담은 머리말(frontmatter)과 본문으로 구성됩니다. 본문은 marked 라이브러리로 HTML로 바꿔 보여줍니다.',
+      '글 주소는 날짜와 임의 문자열(예: 2026-09-23-gzblai)로 만듭니다. 제목이 한글이어도 주소가 깨지지 않게 하려는 선택입니다.',
+      'Write 페이지는 GitHub 개인 액세스 토큰(PAT)을 브라우저에 저장해 두고 GitHub Contents API를 호출합니다. 토큰은 api.github.com 요청에만 쓰입니다.',
+      '글을 올리면 커밋이 생기고, 그 커밋이 자동 배포를 일으켜 1분 안팎에 사이트에 반영됩니다.',
+      '수정과 삭제는 파일의 현재 sha 값을 먼저 조회한 뒤 요청합니다. GitHub API가 요구하는 방식입니다.',
+    ],
   },
   {
-    id: 'log-analysis-tool',
-    title: '대용량 로그 분석 웹 도구',
-    summary:
-      '수 GB 로그를 한 번만 인덱싱해 타임라인, 요청 추적, 예외 군집화, 성능·트래픽 분석을 제공하는 로컬 도구. 외부 의존성 없이 오프라인 동작.',
-    tags: ['Python', 'JavaScript', '로그분석'],
+    id: 'calculator-tool',
+    title: '도구 실행: 계산기',
+    summary: '계산 로직(컨트롤러)과 화면(뷰)을 나눠 만든 버튼식 계산기와 단위 테스트.',
+    tags: ['React', 'Vitest', 'TypeScript'],
+    overview:
+      'Tools 페이지의 계산기는 로직과 화면이 분리되어 있습니다. 로직은 React를 전혀 모르는 순수 함수(리듀서)이고, 화면은 그 함수를 useReducer로 연결해 버튼을 그릴 뿐입니다.',
+    points: [
+      '컨트롤러(controller.ts)는 현재 상태와 동작(숫자, 소수점, 연산자, =, 지우기)을 받아 새 상태를 돌려주는 함수입니다. 화면 없이도 테스트할 수 있습니다.',
+      'Vitest 단위 테스트가 사칙연산, 0으로 나누기, 연이은 계산 등을 확인합니다.',
+      '연산자 우선순위는 구현하지 않았습니다. 누른 순서대로 계산하므로 2 + 3 × 4 는 20입니다. 간단한 계산기의 방식입니다.',
+      '도구 목록과 화면 연결을 타입으로 묶어 두어서, 도구를 추가할 때 한쪽을 빠뜨리면 빌드가 실패합니다.',
+    ],
   },
   {
-    id: 'connection-pool-leak-demo',
-    title: 'DB 커넥션 풀 누수 재현 데모',
-    summary: '커넥션 누수 증상을 재현해 원인과 관찰 방법을 보여주는 데모.',
-    tags: ['Node.js', 'DB', 'pgpool'],
+    id: 'deploy-pipeline',
+    title: '자동 배포 파이프라인',
+    summary: 'main에 push하면 테스트, 빌드, 배포가 자동으로 실행되어 GitHub Pages에 반영됩니다.',
+    tags: ['GitHub Actions', 'GitHub Pages', 'CI'],
+    overview:
+      '이 사이트는 정적 파일만 올리는 GitHub Pages에서 동작합니다. main 브랜치에 변경이 올라오면 GitHub Actions가 의존성 설치, 테스트, 빌드를 차례로 실행하고 결과물을 gh-pages 브랜치에 게시합니다.',
+    points: [
+      '테스트가 하나라도 실패하면 빌드와 배포까지 가지 않습니다.',
+      '서버가 없어서 페이지 이동에는 HashRouter를 씁니다. 주소가 /#/blog처럼 #을 포함하지만, 어느 페이지에서 새로고침해도 404가 나지 않습니다.',
+      '짧은 시간에 여러 번 push해도 배포가 꼬이지 않도록 concurrency 설정으로 이전 실행을 취소합니다.',
+      '게시되는 것은 Vite가 만든 HTML, CSS, JS 파일뿐입니다. 글쓰기 기능도 이 정적 사이트 안에서 브라우저가 GitHub API를 직접 호출하는 방식으로 동작합니다.',
+    ],
   },
   {
-    id: 'thread-dump-scripts',
-    title: '스레드 덤프 수집·분석 스크립트',
-    summary: '장애 시점의 jstack 덤프를 일정 간격으로 수집하고 요약하는 스크립트.',
-    tags: ['PowerShell', 'JVM'],
+    id: 'claude-workflow',
+    title: 'Claude와 만드는 개발 방식',
+    summary: '아이디어를 설계, 계획, 구현, 리뷰 순서로 쪼개서 Claude와 함께 만들었습니다.',
+    tags: ['Claude Code', '워크플로', '코드 리뷰'],
+    overview:
+      '이 사이트의 기능은 한 번에 만들어진 것이 아니라 단계마다 같은 순서로 만들어졌습니다. 무엇을 만들지 질문으로 정리하고(설계), 작업을 작은 단위로 나누고(계획), 단위마다 구현한 뒤 따로 검토했습니다.',
+    points: [
+      '먼저 Claude가 질문을 하나씩 던져 범위와 선택지를 정하고, 합의한 내용을 설계 문서로 남깁니다.',
+      '설계를 바탕으로 작업 계획을 세우고, 작업마다 구현 담당과 별도의 검토 담당이 맡아 서로의 결과를 확인합니다.',
+      '마지막에 전체 변경을 한 번 더 검토합니다. 검증과 최종 검토 단계에서 실제 문제가 발견됐습니다. 예를 들어 윈도우의 줄바꿈(CRLF) 때문에 글 목록이 깨지는 버그, 포인트 색을 바꾼 뒤 버튼 글씨가 거의 안 보이게 된 문제입니다.',
+      '배포나 push처럼 되돌리기 어려운 작업은 그때마다 사람에게 확인을 받고 진행했습니다.',
+    ],
   },
 ]
