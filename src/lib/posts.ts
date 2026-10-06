@@ -1,4 +1,5 @@
 import { parseFrontmatter } from './frontmatter'
+import { toExcerpt } from './markdown'
 
 export type Post = {
   slug: string
@@ -27,13 +28,11 @@ function slugFromPath(path: string): string {
 export const posts: Post[] = Object.entries(files)
   .map(([path, raw]) => {
     const { frontmatter, body } = parseFrontmatter(raw)
-    const excerpt =
-      body.length > EXCERPT_LENGTH ? `${body.slice(0, EXCERPT_LENGTH)}...` : body
     return {
       slug: slugFromPath(path),
       title: frontmatter.title,
       date: frontmatter.date,
-      excerpt,
+      excerpt: toExcerpt(body, frontmatter.title, EXCERPT_LENGTH),
       body,
     }
   })

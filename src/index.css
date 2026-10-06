@@ -65,7 +65,7 @@
      theme tokens, which keeps dark/light in sync automatically. */
   .markdown-body {
     line-height: 1.75;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
   }
 
   .markdown-body > :first-child {
@@ -83,7 +83,7 @@
   }
 
   .markdown-body h1 {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
   }
 
   .markdown-body h2 {
@@ -96,6 +96,15 @@
 
   .markdown-body h4 {
     font-size: 1rem;
+    color: rgb(var(--color-muted));
+  }
+
+  .markdown-body h5,
+  .markdown-body h6 {
+    @apply font-mono font-semibold;
+    font-size: 0.9rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
     color: rgb(var(--color-muted));
   }
 
@@ -206,8 +215,12 @@
   .markdown-body td {
     border: 1px solid rgb(var(--color-border));
     padding: 0.5rem 0.75rem;
-    text-align: left;
     vertical-align: top;
+  }
+
+  .markdown-body th:not([align]),
+  .markdown-body td:not([align]) {
+    text-align: left;
   }
 
   .markdown-body th {
