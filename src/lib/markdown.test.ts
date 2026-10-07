@@ -1,5 +1,36 @@
 import { describe, it, expect } from 'vitest'
-import { stripLeadingTitle, toExcerpt } from './markdown'
+import { stripLeadingTitle, toExcerpt, toPlainText } from './markdown'
+
+describe('toPlainText', () => {
+  it('turns markdown into the text a reader sees', () => {
+    const body = '## Title\n\n- **bold** item with [a link](https://example.com/x)\n> quote'
+    expect(toPlainText(body)).toBe('Title bold item with a link quote')
+  })
+
+  it('drops code blocks unless asked to keep them', () => {
+    const body = 'Run:\n\n```bash\nsudo reboot\n```\n\nDone.'
+    expect(toPlainText(body)).toBe('Run: Done.')
+  })
+
+  it('keeps the content of code blocks untouched, without the fences', () => {
+    const body = 'Run:\n\n```bash\nps -ef | grep java\n# a comment\n- not a list\n```\n\nDone.'
+    expect(toPlainText(body, true)).toBe('Run: ps -ef | grep java # a comment - not a list Done.')
+  })
+
+  it('treats an unclosed fence as code up to the end', () => {
+    expect(toPlainText('Before\n```\nlast line', true)).toBe('Before last line')
+    expect(toPlainText('Before\n```\nlast line')).toBe('Before')
+  })
+
+  it('removes table separator rows but keeps the cell text', () => {
+    const body = '| Name | Value |\n|---|---|\n| a | b |'
+    expect(toPlainText(body)).toBe('Name Value a b')
+  })
+
+  it('removes alignment separator rows too', () => {
+    expect(toPlainText('| a | b |\n| :--- | ---: |\n| 1 | 2 |')).toBe('a b 1 2')
+  })
+})
 
 describe('toExcerpt', () => {
   it('drops the repeated title and heading markers', () => {

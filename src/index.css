@@ -10,6 +10,7 @@
   --color-surface: 243 239 228;
   --color-accent: 4 120 87;
   --color-accent-hover: 6 95 70;
+  --color-match: 190 30 45;
   color-scheme: light;
 }
 
@@ -21,6 +22,7 @@
   --color-surface: 17 24 32;
   --color-accent: 61 220 151;
   --color-accent-hover: 110 231 183;
+  --color-match: 255 107 107;
   color-scheme: dark;
 }
 
@@ -58,6 +60,13 @@
 
   .tag {
     @apply rounded border border-border px-2 py-0.5 font-mono text-xs text-muted;
+  }
+
+  /* The part of a title or body that matched the blog search: red, and bold so it does not rely on color alone. */
+  .search-match {
+    background: transparent;
+    color: rgb(var(--color-match));
+    font-weight: 700;
   }
 
   /* Rendered markdown (blog post bodies). Tailwind's preflight strips default
