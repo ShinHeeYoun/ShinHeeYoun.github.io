@@ -6,3 +6,5 @@ dist
 vite.config.js
 vite.config.d.ts
 .superpowers/
+server/status/build/
+server/status/lib/
