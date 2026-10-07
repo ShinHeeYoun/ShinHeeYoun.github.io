@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { formatBytes, formatPercent, formatUptime, parseStatus } from './serverStatus'
-import { resolveStatusUrl } from './serverApi'
+import { SERVER_API_BASE, resolveStatusUrl } from './serverApi'
 
 // What the server's /status/api really returned, trimmed to one history point.
 const SAMPLE = {
@@ -92,6 +92,12 @@ describe('formatPercent', () => {
     expect(formatPercent(0.006)).toBe('0.6%')
     expect(formatPercent(0.5)).toBe('50%')
     expect(formatPercent(null)).toBe('-')
+  })
+})
+
+describe('SERVER_API_BASE', () => {
+  it('can be called from the https site, or the card would never show anything there', () => {
+    expect(resolveStatusUrl(SERVER_API_BASE, 'https:', false)).toBe(`${SERVER_API_BASE}/status/api`)
   })
 })
 

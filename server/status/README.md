@@ -57,10 +57,8 @@ To remove it, delete `webapps/status.war` and the unpacked `webapps/status/` fol
 - `OPTIONS` preflight from the site: 200 with the allowed methods.
 - `POST`: 405.
 
-## Why the site cannot show it yet
+## How the site reaches it
 
-GitHub Pages is served over HTTPS, and a browser refuses to call a plain `http://` address from an HTTPS page. The
-server needs an HTTPS address first (a free DuckDNS name with Caddy in front of Tomcat). Once it has one, set
-`SERVER_API_BASE` in `src/lib/serverApi.ts` to it. Until then the card says the connection is being prepared.
-When setting up the proxy, expose only `/status/*` on the public HTTPS name so the other applications are not
-opened up through it.
+GitHub Pages is served over HTTPS, and a browser refuses to call a plain `http://` address from an HTTPS page, so
+the site calls the server through an HTTPS name (`SERVER_API_BASE` in `src/lib/serverApi.ts`). nginx with a
+Let's Encrypt certificate sits in front of Tomcat and passes on only `/status/`; see `../HTTPS.md`.

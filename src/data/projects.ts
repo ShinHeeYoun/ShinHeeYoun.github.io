@@ -74,6 +74,22 @@ export const projects: Project[] = [
     ],
   },
   {
+    id: 'server-status',
+    title: '라이브 서버 상태',
+    summary: '정적 사이트인 이 페이지가, 따로 운영하는 Tomcat 서버의 힙과 스레드를 실시간으로 보여줍니다.',
+    tags: ['Java', 'Tomcat', 'nginx', 'HTTPS'],
+    overview:
+      '이 사이트는 정적 파일만 올린 GitHub Pages라서 서버 프로그램이 없습니다. 그래서 Oracle Cloud 무료 서버의 Tomcat에 작은 서블릿 앱(status)을 올리고, 홈 화면의 카드가 10초마다 그 앱의 JSON을 가져와 업타임, 힙 메모리, 스레드, HTTP 요청 수와 최근 10분 그래프를 그립니다.',
+    points: [
+      '서블릿 앱 하나가 `/status/api`로 JSON을 돌려줍니다. 값은 JVM의 관리 빈(MXBean)과 Tomcat의 MBean에서 읽고, 5초마다 값을 모아 최근 10분을 들고 있다가 그래프용으로 함께 줍니다. 호스트 이름, 경로, IP, 환경변수는 내보내지 않고, 응답은 2초 동안 캐시해 요청이 몰려도 서버가 더 일하지 않습니다.',
+      '앱을 내릴 때 샘플링 스레드도 함께 멈추게 했습니다. 이걸 빼먹으면 재배포할 때마다 스레드가 남는 Tomcat의 대표적인 누수가 됩니다.',
+      '브라우저는 다른 도메인(github.io에서 서버로)의 호출을 기본으로 막습니다. Tomcat 내장 CorsFilter를 이 앱의 web.xml에만 걸어 `https://shinheeyoun.github.io`만 허용하고, 다른 출처는 403을 돌려줍니다. 전역 설정이 아니라서 같은 Tomcat의 다른 앱에는 영향이 없습니다.',
+      'GitHub Pages는 https라서 http 서버는 브라우저가 막습니다(mixed content). 그래서 무료 DuckDNS 이름과 nginx, Let\'s Encrypt 인증서로 https 주소를 만들었고 인증서는 자동으로 갱신됩니다. 공개 https 이름에는 `/status/` 경로만 전달하고 나머지는 404라서 같은 서버의 다른 앱이 이 이름으로 노출되지 않습니다. 요청은 주소당 초당 5회로 제한합니다.',
+      '서버가 꺼져도 사이트는 멀쩡해야 해서, 카드는 5초 안에 응답이 없으면 안내 문구만 보여주고 다시 응답이 오면 스스로 복구합니다. 탭이 숨겨져 있을 때는 요청하지 않습니다.',
+      '서버 쪽 확인은 실제 서버에 curl로 했습니다. 허용된 출처, 다른 출처(403), preflight, POST(405)와 http에서 https로의 리다이렉트를 봤습니다. 사이트 쪽은 Vitest로 응답 해석(숫자가 아니면 거르기), 단위 변환, 호출할 주소 선택을 테스트합니다.',
+    ],
+  },
+  {
     id: 'deploy-pipeline',
     title: '자동 배포 파이프라인',
     summary: 'main에 push하면 테스트, 빌드, 배포가 자동으로 실행되어 GitHub Pages에 반영됩니다.',
