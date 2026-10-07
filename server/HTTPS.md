@@ -36,9 +36,12 @@ sudo cp server/nginx/shinheeyoun.conf /etc/nginx/conf.d/shinheeyoun.conf
 sudo nginx -t && sudo systemctl enable --now nginx
 ```
 
-The config passes only `/status/` to Tomcat and answers 404 for everything else, so `ReportingServer`,
-`DataServer` and the rest are not reachable through the public HTTPS name. It also limits each address to
-5 requests per second (burst 20).
+The config in this repository passes only `/status/` to Tomcat and answers 404 for everything else. It also limits
+each address to 5 requests per second (burst 20).
+
+The other applications that run on the same Tomcat are separate from this site, so they are not described here.
+Their paths are added to the same file on the server only (one `location ~ ^/(app1|app2)(/|$)` block that passes
+the request on unchanged), and that part of the file is not committed.
 
 ## 4. The certificate
 
@@ -62,7 +65,7 @@ sudo certbot renew --dry-run
 curl -i https://shinheeyoun.duckdns.org/status/api                                      # 200, valid certificate
 curl -i -H "Origin: https://shinheeyoun.github.io" https://shinheeyoun.duckdns.org/status/api   # has Access-Control-Allow-Origin
 curl -i -H "Origin: https://evil.example" https://shinheeyoun.duckdns.org/status/api    # 403
-curl -i https://shinheeyoun.duckdns.org/ReportingServer/                                # 404
+curl -i https://shinheeyoun.duckdns.org/anything-else/                                  # 404 unless it was added on the server
 curl -i http://shinheeyoun.duckdns.org/status/api                                       # 301 to https
 ```
 
@@ -70,4 +73,7 @@ curl -i http://shinheeyoun.duckdns.org/status/api                               
 
 - `http://<ip>:8080` still serves everything, as before. Close it in the OCI security list and the firewall once
   nothing depends on it.
+- Behind the proxy Tomcat still sees plain http, because no `RemoteIpValve` is configured in `server.xml`. The
+  proxy rewrites redirects to https, but an application that builds absolute links from `request.getScheme()`
+  would write `http://`.
 - The apps' own CORS is untouched: only `status` has a `CorsFilter`, in its own `web.xml`.
