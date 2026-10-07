@@ -80,7 +80,8 @@ function draw(ctx: CanvasRenderingContext2D, sprite: HTMLImageElement, state: St
   ctx.globalAlpha = 0.5
   for (const base of [90, 260, 430]) {
     const cloudX = (((base - state.distance * 0.3) % (WIDTH + 80)) + WIDTH + 80) % (WIDTH + 80) - 40
-    ctx.drawImage(mutedSprite, CLOUD.x, CLOUD.y, CLOUD.w, CLOUD.h, cloudX, 30 + (base % 40), CLOUD.w, CLOUD.h)
+    // clouds stay between y=42 and y=60, above the centered message (baseline 76)
+    ctx.drawImage(mutedSprite, CLOUD.x, CLOUD.y, CLOUD.w, CLOUD.h, cloudX, 24 + (base % 24), CLOUD.w, CLOUD.h)
   }
   ctx.globalAlpha = 1
   const lineY = GROUND_Y - HORIZON.lineRow
@@ -115,7 +116,7 @@ function draw(ctx: CanvasRenderingContext2D, sprite: HTMLImageElement, state: St
   if (message) {
     ctx.fillStyle = fg
     ctx.textAlign = 'center'
-    ctx.fillText(message, WIDTH / 2, 70)
+    ctx.fillText(message, WIDTH / 2, 76)
   }
 }
 
