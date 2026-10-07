@@ -18,7 +18,7 @@ import {
 
 const SCALE = 2 // canvas pixels per CSS pixel, keeps the pixel art crisp on hi-dpi screens
 const STEP_MS = 1000 / 60 // the game always advances 60 steps per second, whatever the screen's refresh rate
-const LEG_TICKS = 5 // steps per leg swap: 12 swaps per second, like Chrome
+const LEG_TICKS = 15 // steps per leg swap: 4 swaps per second
 const MAX_LOGS = 60
 const BEST_KEY = 'dino_best'
 
