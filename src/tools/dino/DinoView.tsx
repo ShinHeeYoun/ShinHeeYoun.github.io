@@ -15,6 +15,7 @@ import {
   type LogLine,
   type State,
 } from './controller'
+import { makeWhiteTransparent } from './sprite'
 
 const SCALE = 2 // canvas pixels per CSS pixel, keeps the pixel art crisp on hi-dpi screens
 const STEP_MS = 1000 / 60 // the game always advances 60 steps per second, whatever the screen's refresh rate
@@ -62,6 +63,9 @@ function tint(sprite: HTMLImageElement, fill: string) {
     copy.height = sprite.height
     const g = copy.getContext('2d')!
     g.drawImage(sprite, 0, 0)
+    const pixels = g.getImageData(0, 0, copy.width, copy.height)
+    makeWhiteTransparent(pixels.data)
+    g.putImageData(pixels, 0, 0)
     g.globalCompositeOperation = 'source-in'
     g.fillStyle = fill
     g.fillRect(0, 0, copy.width, copy.height)
