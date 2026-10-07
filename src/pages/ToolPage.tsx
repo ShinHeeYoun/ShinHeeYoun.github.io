@@ -1,10 +1,12 @@
 import { useParams, Link } from 'react-router-dom'
 import type { ComponentType } from 'react'
 import CalculatorView from '../tools/calculator/CalculatorView'
+import DinoView from '../tools/dino/DinoView'
 import { tools, type ToolId } from '../tools/registry'
 
 const toolViews: Record<ToolId, ComponentType> = {
   calculator: CalculatorView,
+  dino: DinoView,
 }
 
 export default function ToolPage() {
