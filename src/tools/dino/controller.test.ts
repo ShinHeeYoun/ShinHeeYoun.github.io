@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
+  CACTI,
   DINO_X,
   MAX_SPEED,
   MIN_SPEED,
@@ -8,6 +9,7 @@ import {
   initialState,
   onKey,
   step,
+  type CactusKind,
   type State,
 } from './controller'
 
@@ -67,7 +69,7 @@ describe('onKey', () => {
 
 describe('step', () => {
   it('advances distance and obstacles by the current speed', () => {
-    const before: State = { ...initialState, speed: 5, obstacles: [{ x: 300, w: 12, h: 20 }] }
+    const before: State = { ...initialState, speed: 5, obstacles: [{ x: 300, kind: 'small' }] }
     const { state, logs } = step(before, rng0)
     expect(state.distance).toBe(5)
     expect(state.obstacles[0].x).toBe(295)
@@ -93,12 +95,18 @@ describe('step', () => {
   it('spawns an obstacle at the right edge when the distance is reached', () => {
     const { state, logs } = step({ ...initialState, nextSpawn: 0 }, rng0)
     expect(state.obstacles).toHaveLength(1)
+    expect(state.obstacles[0].kind).toBe('small')
     expect(state.nextSpawn).toBeGreaterThan(state.distance)
     expect(texts(logs)).toContain('spawn')
   })
 
+  it('picks the large cactus for high random values', () => {
+    const { state } = step({ ...initialState, nextSpawn: 0 }, () => 0.9)
+    expect(state.obstacles[0].kind).toBe('large')
+  })
+
   it('ends the game when the dino touches an obstacle', () => {
-    const before: State = { ...initialState, obstacles: [{ x: DINO_X + 4, w: 14, h: 24 }] }
+    const before: State = { ...initialState, obstacles: [{ x: DINO_X + 4, kind: 'small' }] }
     const { state, logs } = step(before, rng0)
     expect(state.over).toBe(true)
     expect(texts(logs)).toContain('collision')
@@ -107,9 +115,9 @@ describe('step', () => {
   it('does not collide when jumping above the obstacle', () => {
     const before: State = {
       ...initialState,
-      y: 60,
+      y: CACTI.small.h + 20,
       vy: 0,
-      obstacles: [{ x: DINO_X + 4, w: 14, h: 30 }],
+      obstacles: [{ x: DINO_X + 4, kind: 'small' }],
     }
     expect(step(before, rng0).state.over).toBe(false)
   })
@@ -120,6 +128,36 @@ describe('step', () => {
     expect(state).toBe(dead)
     expect(logs).toEqual([])
   })
+})
+
+// The cacti and the jump have to fit together at every speed the player can pick.
+// A single frame-perfect jump is not playable, so require a margin of several frames.
+const MIN_WORKING_JUMP_DELAYS = 5
+
+describe('every obstacle can be jumped over', () => {
+  function workingJumpDelays(kind: CactusKind, speed: number) {
+    let working = 0
+    for (let delay = 0; delay < 120; delay++) {
+      // The obstacle starts 70 frames away at every speed, so each one gets a comparable window to jump in.
+      let state: State = { ...initialState, speed, obstacles: [{ x: DINO_X + speed * 70, kind }], nextSpawn: Infinity }
+      for (let frame = 0; frame < 300 && !state.over; frame++) {
+        if (frame === delay) state = onKey(state, 'Space').state
+        state = step(state, rng0).state
+      }
+      if (!state.over) working++
+    }
+    return working
+  }
+
+  for (const kind of Object.keys(CACTI) as CactusKind[]) {
+    it(`${kind} cactus, from MIN_SPEED to MAX_SPEED`, () => {
+      for (let speed = MIN_SPEED; speed <= MAX_SPEED; speed++) {
+        expect(workingJumpDelays(kind, speed), `${kind} at speed ${speed}`).toBeGreaterThanOrEqual(
+          MIN_WORKING_JUMP_DELAYS,
+        )
+      }
+    })
+  }
 })
 
 describe('getScore', () => {

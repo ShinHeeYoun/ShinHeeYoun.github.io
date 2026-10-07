@@ -1,16 +1,25 @@
 export const WIDTH = 600
 export const HEIGHT = 150
-export const GROUND_Y = 120
-export const DINO_X = 40
-export const DINO_W = 20
-export const DINO_H = 24
+export const GROUND_Y = 130 // y of the dino's feet
+export const DINO_X = 40 // the sprite is 44 x 47
 export const JUMP_V = 9
 export const GRAVITY = 0.5
-export const MIN_SPEED = 2
+// Slower than this the large cactus (50px) can hardly be jumped over, see the "jumped over" tests.
+export const MIN_SPEED = 4
 export const MAX_SPEED = 14
 export const DEFAULT_SPEED = 6
 
-export type Obstacle = { x: number; w: number; h: number }
+// Hitboxes are a little smaller than the sprites so near misses feel fair.
+const DINO_HIT_X = DINO_X + 8
+const DINO_HIT_W = 28
+const CACTUS_INSET = 2
+
+export const CACTI = {
+  small: { w: 17, h: 35 },
+  large: { w: 25, h: 50 },
+}
+export type CactusKind = keyof typeof CACTI
+export type Obstacle = { x: number; kind: CactusKind }
 
 export type State = {
   y: number // height above the ground, 0 = standing
@@ -74,7 +83,7 @@ export function step(state: State, rng: () => number = Math.random): Update {
   const distance = state.distance + state.speed
   const obstacles = state.obstacles
     .map((o) => ({ ...o, x: o.x - state.speed }))
-    .filter((o) => o.x + o.w > 0)
+    .filter((o) => o.x + CACTI[o.kind].w > 0)
 
   if (y > 0 || vy > 0) {
     y += vy
@@ -87,16 +96,19 @@ export function step(state: State, rng: () => number = Math.random): Update {
   }
 
   if (distance >= nextSpawn) {
-    const obstacle = { x: WIDTH, w: 12 + Math.floor(rng() * 9), h: 20 + Math.floor(rng() * 13) }
-    obstacles.push(obstacle)
+    const kind: CactusKind = rng() < 0.5 ? 'small' : 'large'
+    obstacles.push({ x: WIDTH, kind })
     nextSpawn = distance + state.speed * (45 + rng() * 30)
     logs.push(
       event('spawn obstacle'),
-      code(`obstacles.push({ x: WIDTH, w: ${obstacle.w}, h: ${obstacle.h} })   // next at distance=${Math.round(nextSpawn)}`),
+      code(`obstacles.push({ x: WIDTH, kind: '${kind}' })   // next at distance=${Math.round(nextSpawn)}`),
     )
   }
 
-  const hit = obstacles.some((o) => DINO_X < o.x + o.w && DINO_X + DINO_W > o.x && y < o.h)
+  const hit = obstacles.some((o) => {
+    const { w, h } = CACTI[o.kind]
+    return DINO_HIT_X < o.x + w - CACTUS_INSET && DINO_HIT_X + DINO_HIT_W > o.x + CACTUS_INSET && y < h - CACTUS_INSET
+  })
   if (hit) {
     logs.push(event('collision'), code(`if (overlaps(dino, obstacle)) over = true   // score=${Math.floor(distance / 10)}`))
   }

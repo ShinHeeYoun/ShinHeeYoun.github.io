@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
+import spriteUrl from './offline-sprite.png'
 import {
+  CACTI,
   CONTROL_KEYS,
-  DINO_H,
-  DINO_W,
   DINO_X,
   GROUND_Y,
   HEIGHT,
@@ -16,9 +16,16 @@ import {
   type State,
 } from './controller'
 
-const SCALE = 2 // canvas pixels per CSS pixel, keeps rectangles crisp on hi-dpi screens
+const SCALE = 2 // canvas pixels per CSS pixel, keeps the pixel art crisp on hi-dpi screens
 const MAX_LOGS = 60
 const BEST_KEY = 'dino_best'
+
+// Where each picture sits in Chromium's 1x offline sprite sheet (offline_sprite_definitions.ts, trex.ts).
+// The crashed frame has 2 empty rows under the feet, so it is drawn 2px lower to touch the ground line.
+const DINO = { x: 848, y: 2, w: 44, h: 47, standing: 0, running: [88, 132], crashed: 220, crashedFootPad: 2 }
+const CACTUS_X = { small: 228, large: 332 }
+const CLOUD = { x: 86, y: 2, w: 46, h: 14 }
+const HORIZON = { x: 2, y: 54, w: 1200, h: 12, lineRow: 4 }
 
 type Entry = LogLine & { id: number }
 
@@ -43,32 +50,59 @@ const color = (token: string) =>
 
 const pad = (n: number) => String(n).padStart(5, '0')
 
-function draw(ctx: CanvasRenderingContext2D, state: State, best: number, running: boolean) {
+// The sprite sheet is one grey on transparent, so repaint it in a theme color (cached per color).
+const tinted = new Map<string, HTMLCanvasElement>()
+function tint(sprite: HTMLImageElement, fill: string) {
+  let copy = tinted.get(fill)
+  if (!copy) {
+    copy = document.createElement('canvas')
+    copy.width = sprite.width
+    copy.height = sprite.height
+    const g = copy.getContext('2d')!
+    g.drawImage(sprite, 0, 0)
+    g.globalCompositeOperation = 'source-in'
+    g.fillStyle = fill
+    g.fillRect(0, 0, copy.width, copy.height)
+    tinted.set(fill, copy)
+  }
+  return copy
+}
+
+function draw(ctx: CanvasRenderingContext2D, sprite: HTMLImageElement, state: State, best: number, running: boolean) {
   const fg = color('foreground')
   const muted = color('muted')
   ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0)
+  ctx.imageSmoothingEnabled = false
   ctx.clearRect(0, 0, WIDTH, HEIGHT)
 
-  // Both layers scroll from the same distance, so a higher speed moves them faster.
-  ctx.fillStyle = muted
-  ctx.globalAlpha = 0.35
+  // Every layer scrolls from the same distance, so a higher speed moves them all faster.
+  const mutedSprite = tint(sprite, muted)
+  ctx.globalAlpha = 0.5
   for (const base of [90, 260, 430]) {
     const cloudX = (((base - state.distance * 0.3) % (WIDTH + 80)) + WIDTH + 80) % (WIDTH + 80) - 40
-    ctx.fillRect(cloudX, 30 + (base % 40), 36, 8)
+    ctx.drawImage(mutedSprite, CLOUD.x, CLOUD.y, CLOUD.w, CLOUD.h, cloudX, 30 + (base % 40), CLOUD.w, CLOUD.h)
   }
   ctx.globalAlpha = 1
-  ctx.fillRect(0, GROUND_Y, WIDTH, 1)
-  for (let x = -(state.distance % 40); x < WIDTH; x += 40) ctx.fillRect(x, GROUND_Y + 6, 16, 2)
+  const lineY = GROUND_Y - HORIZON.lineRow
+  const scroll = state.distance % HORIZON.w
+  for (const x of [-scroll, HORIZON.w - scroll]) {
+    ctx.drawImage(mutedSprite, HORIZON.x, HORIZON.y, HORIZON.w, HORIZON.h, x, lineY, HORIZON.w, HORIZON.h)
+  }
 
-  ctx.fillStyle = color('accent')
-  const top = GROUND_Y - state.y - DINO_H
-  ctx.fillRect(DINO_X, top, DINO_W, DINO_H)
-  ctx.fillRect(DINO_X + DINO_W - 4, top - 6, 10, 10)
-  ctx.fillStyle = color('background')
-  ctx.fillRect(DINO_X + DINO_W + 2, top - 3, 2, 2)
+  const fgSprite = tint(sprite, fg)
+  for (const o of state.obstacles) {
+    const { w, h } = CACTI[o.kind]
+    ctx.drawImage(fgSprite, CACTUS_X[o.kind], DINO.y, w, h, o.x, GROUND_Y - h, w, h)
+  }
 
-  ctx.fillStyle = fg
-  for (const o of state.obstacles) ctx.fillRect(o.x, GROUND_Y - o.h, o.w, o.h)
+  // Legs swap every 30px scrolled; in the air and on the title screen the dino keeps one pose.
+  const pose = state.over
+    ? DINO.crashed
+    : state.y > 0 || !running
+      ? DINO.standing
+      : DINO.running[Math.floor(state.distance / 30) % 2]
+  const dinoY = GROUND_Y - DINO.h - state.y + (state.over ? DINO.crashedFootPad : 0)
+  ctx.drawImage(tint(sprite, color('accent')), DINO.x + pose, DINO.y, DINO.w, DINO.h, DINO_X, dinoY, DINO.w, DINO.h)
 
   ctx.font = '14px ui-monospace, Consolas, monospace'
   ctx.fillStyle = muted
@@ -81,7 +115,7 @@ function draw(ctx: CanvasRenderingContext2D, state: State, best: number, running
   if (message) {
     ctx.fillStyle = fg
     ctx.textAlign = 'center'
-    ctx.fillText(message, WIDTH / 2, 100) // below the clouds (which stay above y=70)
+    ctx.fillText(message, WIDTH / 2, 70)
   }
 }
 
@@ -115,6 +149,8 @@ export default function DinoView() {
 
   useEffect(() => {
     const ctx = canvasRef.current!.getContext('2d')!
+    const sprite = new Image()
+    sprite.src = spriteUrl
     let frame = 0
     function loop() {
       if (runningRef.current) {
@@ -131,7 +167,7 @@ export default function DinoView() {
         stateRef.current = update.state
         pushLogs(logs)
       }
-      draw(ctx, stateRef.current, bestRef.current, runningRef.current)
+      if (sprite.complete && sprite.naturalWidth > 0) draw(ctx, sprite, stateRef.current, bestRef.current, runningRef.current)
       frame = requestAnimationFrame(loop)
     }
     loop()
@@ -178,6 +214,17 @@ export default function DinoView() {
           </div>
         ))}
       </div>
+      <p className="mt-3 text-xs text-muted">
+        공룡 그래픽:{' '}
+        <a
+          href="https://github.com/ShinHeeYoun/ShinHeeYoun.github.io/blob/main/src/tools/dino/CHROMIUM-LICENSE.txt"
+          target="_blank"
+          rel="noreferrer"
+          className="underline"
+        >
+          Chromium 프로젝트 (BSD 3-Clause)
+        </a>
+      </p>
     </div>
   )
 }
