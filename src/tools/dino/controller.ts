@@ -26,6 +26,7 @@ export type State = {
   vy: number
   speed: number // pixels per frame
   distance: number // total pixels scrolled; the background is drawn from this
+  ticks: number // steps run so far; the dino's legs are animated from this
   nextSpawn: number // distance at which the next obstacle appears
   obstacles: Obstacle[]
   over: boolean
@@ -40,6 +41,7 @@ export const initialState: State = {
   vy: 0,
   speed: DEFAULT_SPEED,
   distance: 0,
+  ticks: 0,
   nextSpawn: 400,
   obstacles: [],
   over: false,
@@ -113,5 +115,5 @@ export function step(state: State, rng: () => number = Math.random): Update {
     logs.push(event('collision'), code(`if (overlaps(dino, obstacle)) over = true   // score=${Math.floor(distance / 10)}`))
   }
 
-  return { state: { ...state, y, vy, distance, nextSpawn, obstacles, over: hit }, logs }
+  return { state: { ...state, y, vy, distance, ticks: state.ticks + 1, nextSpawn, obstacles, over: hit }, logs }
 }

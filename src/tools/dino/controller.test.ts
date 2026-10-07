@@ -76,6 +76,12 @@ describe('step', () => {
     expect(logs).toEqual([])
   })
 
+  it('counts the steps it has run (the view animates the legs from this)', () => {
+    let state: State = initialState
+    for (let i = 0; i < 7; i++) state = step(state, rng0).state
+    expect(state.ticks).toBe(7)
+  })
+
   it('rises, then lands and logs the landing', () => {
     let state = onKey(initialState, 'ArrowUp').state
     let landedLog = ''

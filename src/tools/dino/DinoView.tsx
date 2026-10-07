@@ -17,6 +17,8 @@ import {
 } from './controller'
 
 const SCALE = 2 // canvas pixels per CSS pixel, keeps the pixel art crisp on hi-dpi screens
+const STEP_MS = 1000 / 60 // the game always advances 60 steps per second, whatever the screen's refresh rate
+const LEG_TICKS = 5 // steps per leg swap: 12 swaps per second, like Chrome
 const MAX_LOGS = 60
 const BEST_KEY = 'dino_best'
 
@@ -96,12 +98,12 @@ function draw(ctx: CanvasRenderingContext2D, sprite: HTMLImageElement, state: St
     ctx.drawImage(fgSprite, CACTUS_X[o.kind], DINO.y, w, h, o.x, GROUND_Y - h, w, h)
   }
 
-  // Legs swap every 30px scrolled; in the air and on the title screen the dino keeps one pose.
+  // In the air and on the title screen the dino keeps one pose.
   const pose = state.over
     ? DINO.crashed
     : state.y > 0 || !running
       ? DINO.standing
-      : DINO.running[Math.floor(state.distance / 30) % 2]
+      : DINO.running[Math.floor(state.ticks / LEG_TICKS) % 2]
   const dinoY = GROUND_Y - DINO.h - state.y + (state.over ? DINO.crashedFootPad : 0)
   ctx.drawImage(tint(sprite, color('accent')), DINO.x + pose, DINO.y, DINO.w, DINO.h, DINO_X, dinoY, DINO.w, DINO.h)
 
@@ -153,21 +155,35 @@ export default function DinoView() {
     const sprite = new Image()
     sprite.src = spriteUrl
     let frame = 0
-    function loop() {
-      if (runningRef.current) {
-        const update = step(stateRef.current)
-        const logs = [...update.logs]
-        if (update.state.over && !stateRef.current.over) {
-          const score = getScore(update.state)
-          if (score > bestRef.current) {
-            bestRef.current = score
-            saveBest(score)
-            logs.push({ type: 'code', text: `if (score > best) localStorage.setItem('${BEST_KEY}', score)   // best=${score}` })
-          }
+    let last = performance.now()
+    let pending = 0 // milliseconds of game time not yet stepped
+
+    function advance() {
+      const update = step(stateRef.current)
+      const logs = [...update.logs]
+      if (update.state.over && !stateRef.current.over) {
+        const score = getScore(update.state)
+        if (score > bestRef.current) {
+          bestRef.current = score
+          saveBest(score)
+          logs.push({ type: 'code', text: `if (score > best) localStorage.setItem('${BEST_KEY}', score)   // best=${score}` })
         }
-        stateRef.current = update.state
-        pushLogs(logs)
       }
+      stateRef.current = update.state
+      pushLogs(logs)
+    }
+
+    function loop(now = performance.now()) {
+      if (runningRef.current) {
+        pending += Math.min(now - last, 100) // after a hidden tab, don't fast-forward
+        while (pending >= STEP_MS) {
+          advance()
+          pending -= STEP_MS
+        }
+      } else {
+        pending = 0
+      }
+      last = now
       if (sprite.complete && sprite.naturalWidth > 0) draw(ctx, sprite, stateRef.current, bestRef.current, runningRef.current)
       frame = requestAnimationFrame(loop)
     }
