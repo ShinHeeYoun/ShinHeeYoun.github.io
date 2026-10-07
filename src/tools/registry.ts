@@ -13,7 +13,7 @@ export const tools = [
   {
     id: 'dino',
     name: '공룡 점프 게임',
-    description: '입력과 게임 로직이 로그로 흐르는 크롬 오프라인 공룡 게임입니다.',
+    description: '새는 숙여서 피하고 나무는 불덩이로 태우며 달리는 공룡 게임입니다. 입력과 게임 로직이 로그로 흐릅니다.',
   },
 ] as const satisfies readonly ToolMeta[]
 
