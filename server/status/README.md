@@ -1,10 +1,19 @@
 # status: live server status API
 
 A small Tomcat web app (Servlet 4.0, runs on Tomcat 9 / Java 17) that tells the website how the server is doing.
-`GET /status/api` returns JSON with the uptime, heap and thread numbers, HTTP request counts, CPU load and the
-last 10 minutes of samples. The site's "라이브 서버 상태" card draws it.
+`GET /status/api` returns JSON, and the site's "라이브 서버 상태" card draws it:
 
-Only counters and sizes are returned: no host names, paths, IP addresses, environment variables or settings.
+| Group | What it holds |
+|---|---|
+| Host | OS name and architecture, machine uptime, memory, swap, disk of `/`, CPU load, cores, load average, open file descriptors |
+| JVM | VM name, heap used/committed/max, non-heap, Metaspace, loaded classes, threads by state, GC count and time |
+| HTTP | Requests, errors, mean and slowest processing time, bytes in/out, connections, busy/max threads, active sessions (one total) |
+| History | The last 10 minutes (a sample every 5 s) of heap, threads, busy threads, CPU, request count and memory in use |
+
+Only counters and sizes are returned: no host names, paths, IP addresses, environment variables, settings, thread
+names or web application names (sessions are summed over all applications). Machine memory comes from
+`/proc/meminfo` (`MemAvailable`), because the JVM's own "free" figure ignores the cache and looks far too low.
+The site treats every field added after the first version as optional, so an older `status.war` still works.
 
 ## Files
 
