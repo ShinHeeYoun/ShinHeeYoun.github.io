@@ -14,14 +14,8 @@ export default function Hero() {
       <p className="mt-2 max-w-xl font-sans text-muted">github homepage with Claude</p>
       <div className="mt-6 flex flex-wrap gap-3 text-sm">
         <Link
-          to="/projects"
-          className="rounded border border-accent px-4 py-2 text-accent transition-colors hover:bg-accent hover:text-background"
-        >
-          view projects
-        </Link>
-        <Link
           to="/blog"
-          className="rounded border border-border px-4 py-2 text-muted transition-colors hover:border-accent hover:text-accent"
+          className="rounded border border-accent px-4 py-2 text-accent transition-colors hover:bg-accent hover:text-background"
         >
           read blog
         </Link>

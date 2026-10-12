@@ -4,7 +4,6 @@ import { applyTheme, getStoredTheme, resolveInitialTheme, setStoredTheme, type T
 
 const LINKS = [
   { to: '/', label: 'Home', end: true },
-  { to: '/projects', label: 'Projects', end: false },
   { to: '/blog', label: 'Blog', end: false },
   { to: '/tools', label: 'Tools', end: false },
   { to: '/about', label: 'About', end: false },

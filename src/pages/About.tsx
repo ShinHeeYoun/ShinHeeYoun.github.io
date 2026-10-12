@@ -36,7 +36,7 @@ const stack = [
   {
     name: 'Vitest',
     description:
-      '단위 테스트 도구입니다. 계산기 로직, 글 머리말(frontmatter) 파서, 테마 선택 규칙, 프로젝트 데이터를 검사합니다.',
+      '단위 테스트 도구입니다. 계산기 로직, 글 머리말(frontmatter) 파서, 테마 선택 규칙, 블로그 검색을 검사합니다.',
   },
   {
     name: 'Claude Code',
