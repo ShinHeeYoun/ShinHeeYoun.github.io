@@ -148,9 +148,6 @@ export default function ServerStatusSection() {
   return (
     <section>
       <h2 className="text-xl font-semibold">라이브 서버 상태</h2>
-      <p className="mt-2 text-sm text-muted">
-        이 사이트는 정적 파일만 올린 GitHub Pages예요. 아래 숫자는 따로 운영하는 Oracle Cloud 무료 서버의 Tomcat이 알려주는 실시간 값이고, 10초마다 갱신됩니다.
-      </p>
       <div className="card mt-4">
         {view.kind === 'online' && <Online status={view.status} />}
         {view.kind === 'loading' && <p className="font-mono text-sm text-muted">서버에 물어보는 중...</p>}
