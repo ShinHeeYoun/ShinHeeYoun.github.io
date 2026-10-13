@@ -2,8 +2,10 @@ const OWNER = 'ShinHeeYoun'
 const REPO = 'ShinHeeYoun.github.io'
 const BRANCH = 'main'
 
+export const REPO_API_URL = `https://api.github.com/repos/${OWNER}/${REPO}`
+
 function apiUrl(path: string): string {
-  return `https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`
+  return `${REPO_API_URL}/contents/${path}`
 }
 
 function utf8ToBase64(text: string): string {

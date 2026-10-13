@@ -1,16 +1,22 @@
 import { Link, NavLink } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { applyTheme, getStoredTheme, resolveInitialTheme, setStoredTheme, type Theme } from '../lib/theme'
+import AdminButton from './AdminButton'
+import { useAdmin } from './AdminContext'
 
 const LINKS = [
   { to: '/', label: 'Home', end: true },
   { to: '/blog', label: 'Blog', end: false },
   { to: '/tools', label: 'Tools', end: false },
   { to: '/about', label: 'About', end: false },
-  { to: '/write', label: 'Write', end: false },
 ]
 
+// Write is only offered to a signed-in admin.
+const WRITE_LINK = { to: '/write', label: 'Write', end: false }
+
 export default function NavBar() {
+  const { status } = useAdmin()
+  const links = status === 'admin' ? [...LINKS, WRITE_LINK] : LINKS
   const [theme, setTheme] = useState<Theme>(() => resolveInitialTheme(getStoredTheme()))
 
   useEffect(() => {
@@ -29,7 +35,7 @@ export default function NavBar() {
         <Link to="/" className="mr-2 font-bold text-accent">
           ~/shinheeyoun
         </Link>
-        {LINKS.map((link) => (
+        {links.map((link) => (
           <NavLink
             key={link.to}
             to={link.to}
@@ -45,14 +51,17 @@ export default function NavBar() {
             )}
           </NavLink>
         ))}
-        <button
-          type="button"
-          onClick={toggleTheme}
-          aria-label="테마 전환"
-          className="ml-auto rounded-md border border-border px-2 py-1 text-sm hover:border-accent"
-        >
-          {theme === 'dark' ? '🌙' : '☀️'}
-        </button>
+        <div className="ml-auto flex items-center gap-2">
+          <AdminButton />
+          <button
+            type="button"
+            onClick={toggleTheme}
+            aria-label="테마 전환"
+            className="rounded-md border border-border px-2 py-1 text-sm hover:border-accent"
+          >
+            {theme === 'dark' ? '🌙' : '☀️'}
+          </button>
+        </div>
       </div>
     </nav>
   )

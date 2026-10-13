@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { generateSlug, posts, type Post } from '../lib/posts'
 import { parseFrontmatter, serializeFrontmatter } from '../lib/frontmatter'
 import { createOrUpdateFile, deleteFile, getFile } from '../lib/github'
-import { getStoredPat, setStoredPat } from '../lib/pat'
+import { useAdmin } from '../components/AdminContext'
 
 function getLocalDateString(): string {
   const d = new Date()
@@ -13,7 +13,7 @@ function getLocalDateString(): string {
 }
 
 export default function Write() {
-  const [pat, setPat] = useState(getStoredPat())
+  const { pat } = useAdmin()
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
   const [status, setStatus] = useState<string | null>(null)
@@ -35,7 +35,6 @@ export default function Write() {
     setStatus(null)
     setIsPublishing(true)
     try {
-      setStoredPat(pat)
       const date = editingDate ?? getLocalDateString()
       const slug = editingSlug ?? generateSlug(date)
       const fileContent = serializeFrontmatter({ title, date }, body)
@@ -60,7 +59,6 @@ export default function Write() {
     setStatus(null)
     setIsLoadingPost(post.slug)
     try {
-      setStoredPat(pat)
       const path = `src/content/posts/${post.slug}.md`
       const { content, sha } = await getFile(path, pat)
       const { frontmatter, body: parsedBody } = parseFrontmatter(content)
@@ -83,7 +81,6 @@ export default function Write() {
     setStatus(null)
     setIsLoadingPost(post.slug)
     try {
-      setStoredPat(pat)
       const path = `src/content/posts/${post.slug}.md`
       const { sha } = await getFile(path, pat)
       await deleteFile(path, `post: delete ${post.title}`, sha, pat)
@@ -103,20 +100,11 @@ export default function Write() {
       <h1 className="text-2xl font-bold">Write</h1>
 
       <p className="mt-4 rounded-md bg-amber-50 p-3 text-sm text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
-        이 저장소(ShinHeeYoun/ShinHeeYoun.github.io) 전용, Contents: Read and write 권한만 있는
-        fine-grained PAT를 사용하세요. 이 토큰은 브라우저 localStorage에 저장되며, 이 브라우저에서
-        스크립트를 실행할 수 있는 누구나 읽을 수 있습니다.
+        ADMIN에서 입력한 토큰으로 글을 올립니다. 이 저장소(ShinHeeYoun/ShinHeeYoun.github.io) 전용,
+        Contents: Read and write 권한만 있는 fine-grained PAT를 사용하세요. 이 토큰은 브라우저
+        localStorage에 저장되며, 이 브라우저에서 스크립트를 실행할 수 있는 누구나 읽을 수 있습니다.
+        공용 PC에서는 ADMIN에서 로그아웃하세요.
       </p>
-
-      <div className="mt-4">
-        <label className="block text-sm font-medium">Personal Access Token</label>
-        <input
-          type="password"
-          value={pat}
-          onChange={(e) => setPat(e.target.value)}
-          className="mt-1 w-full rounded-md border border-border bg-surface p-2 text-foreground"
-        />
-      </div>
 
       <div className="mt-4">
         <label className="block text-sm font-medium">

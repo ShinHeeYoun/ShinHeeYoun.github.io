@@ -15,3 +15,11 @@ export function setStoredPat(pat: string): void {
     // localStorage unavailable (e.g. private browsing) — nothing to persist
   }
 }
+
+export function clearStoredPat(): void {
+  try {
+    localStorage.removeItem(STORAGE_KEY)
+  } catch {
+    // nothing to clear
+  }
+}
