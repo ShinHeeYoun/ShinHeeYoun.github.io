@@ -1,5 +1,6 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { renderPostHtml } from '../lib/markdown'
+import MarkdownBody from './MarkdownBody'
 
 type Props = {
   title: string
@@ -70,7 +71,7 @@ export default function PostEditor({ title, body, date, onTitleChange, onBodyCha
           <>
             <h1 className="text-2xl font-bold">{shown.title || '(제목 없음)'}</h1>
             <p className="mt-1 text-sm text-muted">{shown.date}</p>
-            <div className="markdown-body mt-8" dangerouslySetInnerHTML={{ __html: html }} />
+            <MarkdownBody html={html} className="mt-8" />
           </>
         ) : (
           <p className="text-sm text-muted">미리보기를 누르면 여기에 표시됩니다.</p>

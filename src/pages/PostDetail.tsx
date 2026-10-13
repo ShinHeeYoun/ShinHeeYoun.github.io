@@ -1,5 +1,6 @@
 import { useParams, Link } from 'react-router-dom'
 import { posts } from '../lib/posts'
+import MarkdownBody from '../components/MarkdownBody'
 import { renderPostHtml } from '../lib/markdown'
 
 export default function PostDetail() {
@@ -28,7 +29,7 @@ export default function PostDetail() {
         <h1 className="mt-4 text-2xl font-bold">{post.title}</h1>
         <p className="mt-1 text-sm text-muted">{post.date}</p>
         {/* No HTML sanitization: post bodies come only from files in this repo, writable only via a PAT with Contents: write access — same trust level as any other source file. */}
-        <div className="markdown-body mt-8" dangerouslySetInnerHTML={{ __html: html }} />
+        <MarkdownBody html={html} className="mt-8" />
       </div>
     </main>
   )

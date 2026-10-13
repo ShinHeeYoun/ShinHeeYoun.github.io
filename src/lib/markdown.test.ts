@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { renderPostHtml, stripLeadingTitle, toExcerpt, toPlainText } from './markdown'
+import { anchorIdFromHref, renderPostHtml, stripLeadingTitle, toExcerpt, toPlainText } from './markdown'
 
 describe('toPlainText', () => {
   it('turns markdown into the text a reader sees', () => {
@@ -116,7 +116,7 @@ describe('stripLeadingTitle', () => {
 describe('renderPostHtml', () => {
   it('turns markdown into HTML', () => {
     const html = renderPostHtml('## Steps\n\n- one\n- two', 'My post')
-    expect(html).toContain('<h2>Steps</h2>')
+    expect(html).toContain('<h2 id="steps">Steps</h2>')
     expect(html).toContain('<li>one</li>')
   })
 
@@ -127,7 +127,7 @@ describe('renderPostHtml', () => {
   })
 
   it('keeps a first heading that is not the title', () => {
-    expect(renderPostHtml('# Other\n\nHello', 'My post')).toContain('<h1>Other</h1>')
+    expect(renderPostHtml('# Other\n\nHello', 'My post')).toContain('<h1 id="other">Other</h1>')
   })
 
   it('renders tables and fenced code', () => {
@@ -138,5 +138,72 @@ describe('renderPostHtml', () => {
 
   it('renders an empty body as nothing', () => {
     expect(renderPostHtml('', 'T').trim()).toBe('')
+  })
+})
+
+describe('heading ids (what a table of contents links to)', () => {
+  const ids = (markdown: string) => [...renderPostHtml(markdown, 'T').matchAll(/<h\d id="([^"]*)"/g)].map((m) => m[1])
+
+  it('gives headings the same ids GitHub does: lower case, no punctuation, spaces become hyphens', () => {
+    expect(ids('## 0. 요약\n\n## 1. 여행 준비 (D-7 ~ D-1)\n\n## 2. 후쿠오카 공항 도착 & 입국\n\n## Hello World!')).toEqual([
+      '0-요약',
+      '1-여행-준비-d-7--d-1',
+      '2-후쿠오카-공항-도착--입국',
+      'hello-world',
+    ])
+  })
+
+  it('numbers repeated headings', () => {
+    expect(ids('## Notes\n\n## Notes\n\n### Notes')).toEqual(['notes', 'notes-1', 'notes-2'])
+  })
+
+  it('uses the text a reader sees, not the markdown marks or HTML around it', () => {
+    expect(ids('## **Bold** and `code` and [a link](https://example.com)')).toEqual(['bold-and-code-and-a-link'])
+    expect(ids('## Tom &amp; Jerry <b>x</b>')).toEqual(['tom--jerry-x'])
+  })
+
+  it('works for every link of a real table of contents', () => {
+    const markdown = [
+      '## 목차',
+      '',
+      '0. [요약](#0-요약)',
+      '1. [여행 준비 (D-7 ~ D-1)](#1-여행-준비-d-7--d-1)',
+      '2. [후쿠오카 공항 도착 & 입국](#2-후쿠오카-공항-도착--입국)',
+      '7. [먹거리 & 추천 식당](#7-먹거리--추천-식당)',
+      '',
+      '## 0. 요약',
+      '## 1. 여행 준비 (D-7 ~ D-1)',
+      '## 2. 후쿠오카 공항 도착 & 입국',
+      '## 7. 먹거리 & 추천 식당',
+    ].join('\n')
+    const html = renderPostHtml(markdown, 'T')
+    const targets = [...html.matchAll(/<a href="(#[^"]*)"/g)].map((m) => anchorIdFromHref(m[1]))
+    expect(targets).toHaveLength(4)
+    for (const target of targets) expect(html).toContain(`id="${target}"`)
+  })
+})
+
+describe('anchorIdFromHref', () => {
+  it('reads the id out of an in-page link, undoing the percent-encoding marked applies', () => {
+    expect(anchorIdFromHref('#intro')).toBe('intro')
+    expect(anchorIdFromHref('#0-%EC%9A%94%EC%95%BD')).toBe('0-요약')
+  })
+
+  it('ignores links that leave the page', () => {
+    expect(anchorIdFromHref('https://example.com/#top')).toBeNull()
+    expect(anchorIdFromHref('/blog')).toBeNull()
+    expect(anchorIdFromHref('#')).toBeNull()
+  })
+
+  it('keeps an id that is not valid percent-encoding as it is', () => {
+    expect(anchorIdFromHref('#100%')).toBe('100%')
+  })
+})
+
+describe('heading ids and code', () => {
+  it('does not touch a heading tag that is only shown as code', () => {
+    const html = renderPostHtml('```html\n<h2>sample</h2>\n```\n\nand `<h3>x</h3>`', 'T')
+    expect(html).not.toContain('id="')
+    expect(html).toContain('&lt;h2&gt;sample&lt;/h2&gt;')
   })
 })

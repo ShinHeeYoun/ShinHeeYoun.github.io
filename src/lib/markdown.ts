@@ -67,8 +67,51 @@ export function stripLeadingTitle(body: string, title: string): string {
   return lines.slice(next).join('\n')
 }
 
-// The HTML of a post body, exactly as the post page and the editor's preview both show it. No sanitizing: the text
-// comes only from files in this repository, or from the admin's own editor.
+// The text of a heading as a reader sees it: the HTML marked produced for it, without tags and entities.
+function visibleText(html: string): string {
+  return html
+    .replace(/<[^>]*>/g, '')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, '&')
+}
+
+// GitHub's rule for the id of a heading, so that a table of contents written for GitHub works here too: lower case,
+// everything except letters, digits, spaces, hyphens and underscores removed, each space turned into a hyphen.
+function headingSlug(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^\p{L}\p{M}\p{N}_ -]/gu, '')
+    .replace(/ /g, '-')
+}
+
+// The HTML of a post body, exactly as the post page and the editor's preview both show it. Headings carry ids, so
+// that in-page links (a table of contents) have something to point at. No sanitizing: the text comes only from
+// files in this repository, or from the admin's own editor.
 export function renderPostHtml(body: string, title: string): string {
-  return marked.parse(stripLeadingTitle(body, title), { async: false }) as string
+  const html = marked.parse(stripLeadingTitle(body, title), { async: false }) as string
+  // The ids are added to the finished HTML rather than through marked's renderer, whose arguments differ between
+  // versions. Code in a post is escaped by marked, so a "<h2>" written inside a code block is never matched here.
+  const used = new Map<string, number>()
+  return html.replace(/<h([1-6])>([\s\S]*?)<\/h\1>/g, (_match, level: string, inner: string) => {
+    const base = headingSlug(visibleText(inner))
+    const seen = used.get(base) ?? 0
+    used.set(base, seen + 1)
+    const id = seen === 0 ? base : `${base}-${seen}`
+    return `<h${level} id="${id}">${inner}</h${level}>`
+  })
+}
+
+// The id an in-page link (href="#...") points at, or null for any other link. marked writes non-ASCII ids
+// percent-encoded, so they are decoded back to match the ids of the headings.
+export function anchorIdFromHref(href: string): string | null {
+  if (!href.startsWith('#') || href.length === 1) return null
+  const encoded = href.slice(1)
+  try {
+    return decodeURIComponent(encoded)
+  } catch {
+    return encoded
+  }
 }
