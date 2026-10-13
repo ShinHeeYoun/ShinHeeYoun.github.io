@@ -2,6 +2,7 @@ import { Link, NavLink } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { applyTheme, getStoredTheme, resolveInitialTheme, setStoredTheme, type Theme } from '../lib/theme'
 import AdminButton from './AdminButton'
+import AdminMenu from './AdminMenu'
 import { useAdmin } from './AdminContext'
 
 const LINKS = [
@@ -11,12 +12,8 @@ const LINKS = [
   { to: '/about', label: 'About', end: false },
 ]
 
-// Write is only offered to a signed-in admin.
-const WRITE_LINK = { to: '/write', label: 'Write', end: false }
-
 export default function NavBar() {
   const { status } = useAdmin()
-  const links = status === 'admin' ? [...LINKS, WRITE_LINK] : LINKS
   const [theme, setTheme] = useState<Theme>(() => resolveInitialTheme(getStoredTheme()))
 
   useEffect(() => {
@@ -35,7 +32,7 @@ export default function NavBar() {
         <Link to="/" className="mr-2 font-bold text-accent">
           ~/shinheeyoun
         </Link>
-        {links.map((link) => (
+        {LINKS.map((link) => (
           <NavLink
             key={link.to}
             to={link.to}
@@ -51,6 +48,7 @@ export default function NavBar() {
             )}
           </NavLink>
         ))}
+        {status === 'admin' && <AdminMenu />}
         <div className="ml-auto flex items-center gap-2">
           <AdminButton />
           <button

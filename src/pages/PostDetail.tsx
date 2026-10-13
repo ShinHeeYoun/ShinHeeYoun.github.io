@@ -1,7 +1,6 @@
 import { useParams, Link } from 'react-router-dom'
-import { marked } from 'marked'
 import { posts } from '../lib/posts'
-import { stripLeadingTitle } from '../lib/markdown'
+import { renderPostHtml } from '../lib/markdown'
 
 export default function PostDetail() {
   const { slug } = useParams<{ slug: string }>()
@@ -18,7 +17,7 @@ export default function PostDetail() {
     )
   }
 
-  const html = marked.parse(stripLeadingTitle(post.body, post.title), { async: false }) as string
+  const html = renderPostHtml(post.body, post.title)
 
   return (
     <main className="w-full px-6 py-12 md:px-12">

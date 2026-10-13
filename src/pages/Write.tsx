@@ -1,16 +1,10 @@
 import { useState } from 'react'
-import { generateSlug, posts, type Post } from '../lib/posts'
-import { parseFrontmatter, serializeFrontmatter } from '../lib/frontmatter'
-import { createOrUpdateFile, deleteFile, getFile } from '../lib/github'
+import AdminNotice from '../components/AdminNotice'
 import { useAdmin } from '../components/AdminContext'
-
-function getLocalDateString(): string {
-  const d = new Date()
-  const year = d.getFullYear()
-  const month = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
+import PostEditor from '../components/PostEditor'
+import { createOrUpdateFile } from '../lib/github'
+import { serializeFrontmatter } from '../lib/frontmatter'
+import { generateSlug, getLocalDateString } from '../lib/posts'
 
 export default function Write() {
   const { pat } = useAdmin()
@@ -18,36 +12,22 @@ export default function Write() {
   const [body, setBody] = useState('')
   const [status, setStatus] = useState<string | null>(null)
   const [isPublishing, setIsPublishing] = useState(false)
-  const [editingSlug, setEditingSlug] = useState<string | null>(null)
-  const [editingSha, setEditingSha] = useState<string | null>(null)
-  const [editingDate, setEditingDate] = useState<string | null>(null)
-  const [isLoadingPost, setIsLoadingPost] = useState<string | null>(null)
-
-  function resetForm() {
-    setTitle('')
-    setBody('')
-    setEditingSlug(null)
-    setEditingSha(null)
-    setEditingDate(null)
-  }
 
   async function handlePublish() {
     setStatus(null)
     setIsPublishing(true)
     try {
-      const date = editingDate ?? getLocalDateString()
-      const slug = editingSlug ?? generateSlug(date)
-      const fileContent = serializeFrontmatter({ title, date }, body)
-      const message = editingSlug ? `post: update ${title}` : `post: ${title}`
+      const date = getLocalDateString()
+      const slug = generateSlug(date)
       await createOrUpdateFile(
         `src/content/posts/${slug}.md`,
-        fileContent,
-        message,
+        serializeFrontmatter({ title, date }, body),
+        `post: ${title}`,
         pat,
-        editingSha ?? undefined,
       )
       setStatus('게시됨 — 배포까지 약 1분 정도 걸려요.')
-      resetForm()
+      setTitle('')
+      setBody('')
     } catch (error) {
       setStatus(error instanceof Error ? error.message : '게시 중 오류가 발생했습니다.')
     } finally {
@@ -55,132 +35,29 @@ export default function Write() {
     }
   }
 
-  async function handleEdit(post: Post) {
-    setStatus(null)
-    setIsLoadingPost(post.slug)
-    try {
-      const path = `src/content/posts/${post.slug}.md`
-      const { content, sha } = await getFile(path, pat)
-      const { frontmatter, body: parsedBody } = parseFrontmatter(content)
-      setTitle(frontmatter.title)
-      setBody(parsedBody)
-      setEditingDate(frontmatter.date)
-      setEditingSlug(post.slug)
-      setEditingSha(sha)
-    } catch (error) {
-      setStatus(error instanceof Error ? error.message : '글을 불러오지 못했습니다.')
-    } finally {
-      setIsLoadingPost(null)
-    }
-  }
-
-  async function handleDelete(post: Post) {
-    if (!window.confirm(`"${post.title}" 글을 삭제할까요? 되돌릴 수 없습니다.`)) {
-      return
-    }
-    setStatus(null)
-    setIsLoadingPost(post.slug)
-    try {
-      const path = `src/content/posts/${post.slug}.md`
-      const { sha } = await getFile(path, pat)
-      await deleteFile(path, `post: delete ${post.title}`, sha, pat)
-      setStatus('삭제됨 — 배포까지 약 1분 정도 걸려요.')
-      if (editingSlug === post.slug) {
-        resetForm()
-      }
-    } catch (error) {
-      setStatus(error instanceof Error ? error.message : '삭제 중 오류가 발생했습니다.')
-    } finally {
-      setIsLoadingPost(null)
-    }
-  }
-
   return (
     <main className="w-full px-6 py-12 md:px-12">
       <h1 className="text-2xl font-bold">Write</h1>
+      <AdminNotice />
 
-      <p className="mt-4 rounded-md bg-amber-50 p-3 text-sm text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
-        ADMIN에서 입력한 토큰으로 글을 올립니다. 이 저장소(ShinHeeYoun/ShinHeeYoun.github.io) 전용,
-        Contents: Read and write 권한만 있는 fine-grained PAT를 사용하세요. 이 토큰은 브라우저
-        localStorage에 저장되며, 이 브라우저에서 스크립트를 실행할 수 있는 누구나 읽을 수 있습니다.
-        공용 PC에서는 ADMIN에서 로그아웃하세요.
-      </p>
-
-      <div className="mt-4">
-        <label className="block text-sm font-medium">
-          제목 {editingSlug && <span className="text-xs text-muted">(수정 중: {editingSlug})</span>}
-        </label>
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="mt-1 w-full rounded-md border border-border bg-surface p-2 text-foreground"
-        />
-      </div>
-
-      <div className="mt-4">
-        <label className="block text-sm font-medium">본문 (Markdown)</label>
-        <textarea
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
-          rows={12}
-          className="mt-1 w-full rounded-md border border-border bg-surface p-2 font-mono text-sm text-foreground"
-        />
-      </div>
-
-      <div className="mt-4 flex gap-2">
+      <PostEditor
+        title={title}
+        body={body}
+        date={getLocalDateString()}
+        onTitleChange={setTitle}
+        onBodyChange={setBody}
+      >
         <button
           type="button"
           onClick={handlePublish}
-          disabled={isPublishing || !pat || !title || !body}
+          disabled={isPublishing || !title || !body}
           className="rounded-md bg-accent px-4 py-2 text-background transition-colors hover:bg-accent-hover disabled:opacity-50"
         >
-          {isPublishing ? '게시 중...' : editingSlug ? '수정 게시' : '게시'}
+          {isPublishing ? '게시 중...' : '게시'}
         </button>
-        {editingSlug && (
-          <button
-            type="button"
-            onClick={resetForm}
-            className="rounded-md border border-border px-4 py-2 hover:bg-surface"
-          >
-            취소
-          </button>
-        )}
-      </div>
+      </PostEditor>
 
       {status && <p className="mt-4 text-sm">{status}</p>}
-
-      <h2 className="mt-12 text-xl font-semibold">내 글 목록</h2>
-      <ul className="mt-4 space-y-2">
-        {posts.map((post) => (
-          <li
-            key={post.slug}
-            className="flex items-center justify-between rounded-md border border-border p-3"
-          >
-            <span>
-              {post.title} <span className="text-xs text-muted">({post.date})</span>
-            </span>
-            <span className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => handleEdit(post)}
-                disabled={isLoadingPost !== null || !pat}
-                className="text-sm text-accent underline disabled:opacity-50"
-              >
-                {isLoadingPost === post.slug ? '불러오는 중...' : '수정'}
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDelete(post)}
-                disabled={isLoadingPost !== null || !pat}
-                className="text-sm text-red-600 underline disabled:opacity-50 dark:text-red-400"
-              >
-                삭제
-              </button>
-            </span>
-          </li>
-        ))}
-      </ul>
     </main>
   )
 }

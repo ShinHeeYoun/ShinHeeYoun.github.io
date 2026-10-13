@@ -1,3 +1,5 @@
+import { marked } from 'marked'
+
 // Markdown marks removed from ordinary text (everything that is not a fenced code block).
 function stripMarks(prose: string): string {
   return prose
@@ -63,4 +65,10 @@ export function stripLeadingTitle(body: string, title: string): string {
     next += 1
   }
   return lines.slice(next).join('\n')
+}
+
+// The HTML of a post body, exactly as the post page and the editor's preview both show it. No sanitizing: the text
+// comes only from files in this repository, or from the admin's own editor.
+export function renderPostHtml(body: string, title: string): string {
+  return marked.parse(stripLeadingTitle(body, title), { async: false }) as string
 }

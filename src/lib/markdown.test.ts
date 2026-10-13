@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { stripLeadingTitle, toExcerpt, toPlainText } from './markdown'
+import { renderPostHtml, stripLeadingTitle, toExcerpt, toPlainText } from './markdown'
 
 describe('toPlainText', () => {
   it('turns markdown into the text a reader sees', () => {
@@ -110,5 +110,33 @@ describe('stripLeadingTitle', () => {
   it('ignores trailing spaces after the heading text', () => {
     const body = '# My Post   \n\nText'
     expect(stripLeadingTitle(body, 'My Post')).toBe('Text')
+  })
+})
+
+describe('renderPostHtml', () => {
+  it('turns markdown into HTML', () => {
+    const html = renderPostHtml('## Steps\n\n- one\n- two', 'My post')
+    expect(html).toContain('<h2>Steps</h2>')
+    expect(html).toContain('<li>one</li>')
+  })
+
+  it('leaves out a first line that only repeats the title, because the page shows the title itself', () => {
+    const html = renderPostHtml('# My post\n\nHello', 'My post')
+    expect(html).not.toContain('<h1>')
+    expect(html).toContain('<p>Hello</p>')
+  })
+
+  it('keeps a first heading that is not the title', () => {
+    expect(renderPostHtml('# Other\n\nHello', 'My post')).toContain('<h1>Other</h1>')
+  })
+
+  it('renders tables and fenced code', () => {
+    const html = renderPostHtml('| a | b |\n|---|---|\n| 1 | 2 |\n\n```bash\nls | wc -l\n```', 'T')
+    expect(html).toContain('<table>')
+    expect(html).toContain('<code class="language-bash">')
+  })
+
+  it('renders an empty body as nothing', () => {
+    expect(renderPostHtml('', 'T').trim()).toBe('')
   })
 })

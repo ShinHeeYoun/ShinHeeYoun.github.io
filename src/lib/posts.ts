@@ -42,3 +42,12 @@ export function generateSlug(date: string): string {
   const randomId = Math.random().toString(36).slice(2, 8)
   return `${date}-${randomId}`
 }
+
+// Today's date in the reader's own time zone, as YYYY-MM-DD (what a new post is dated).
+export function getLocalDateString(): string {
+  const d = new Date()
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}

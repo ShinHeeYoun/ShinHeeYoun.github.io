@@ -6,6 +6,8 @@ import Home from './pages/Home'
 import Blog from './pages/Blog'
 import PostDetail from './pages/PostDetail'
 import Write from './pages/Write'
+import Edit from './pages/Edit'
+import Delete from './pages/Delete'
 import Tools from './pages/Tools'
 import ToolPage from './pages/ToolPage'
 import About from './pages/About'
@@ -23,6 +25,22 @@ export default function App() {
           element={
             <RequireAdmin>
               <Write />
+            </RequireAdmin>
+          }
+        />
+        <Route
+          path="/edit"
+          element={
+            <RequireAdmin>
+              <Edit />
+            </RequireAdmin>
+          }
+        />
+        <Route
+          path="/delete"
+          element={
+            <RequireAdmin>
+              <Delete />
             </RequireAdmin>
           }
         />
