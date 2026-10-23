@@ -315,4 +315,21 @@ describe('RemoteScoreStore', () => {
     const [url] = fetcher.mock.calls[0] as unknown as [string]
     expect(url).toBe(`${BASE}/scores/api/yacht/top?limit=1`)
   })
+
+  // A browser refuses fetch called with any other `this` ("Illegal invocation"), so the default fetcher must not be
+  // called as a method of the store.
+  it('calls the global fetch without the store as its this', async () => {
+    let seenThis: unknown = 'not called'
+    const original = globalThis.fetch
+    globalThis.fetch = function (this: unknown) {
+      seenThis = this
+      return Promise.resolve(new Response('[]', { status: 200 }))
+    } as typeof fetch
+    try {
+      await new RemoteScoreStore(BASE).top(1)
+    } finally {
+      globalThis.fetch = original
+    }
+    expect(seenThis === undefined || seenThis === globalThis).toBe(true)
+  })
 })

@@ -129,7 +129,7 @@ export class RemoteScoreStore implements ScoreStore {
 
   constructor(
     baseUrl: string,
-    private readonly fetcher: typeof fetch = fetch,
+    private readonly fetcher: typeof fetch = (input, init) => fetch(input, init),
   ) {
     this.base = baseUrl.replace(/\/+$/, '')
   }
