@@ -4,7 +4,7 @@ import { ERS_URL } from '../lib/ers'
 // scripts and cookies to work, and it is a site we run ourselves.
 export default function ERS() {
   return (
-    <main className="w-full px-6 py-6 md:px-12">
+    <main className="page-width py-6">
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h1 className="text-2xl font-bold">ERS</h1>
         <a
