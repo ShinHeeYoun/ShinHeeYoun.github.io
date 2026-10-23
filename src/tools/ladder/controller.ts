@@ -3,14 +3,18 @@
 // A ladder has `columns` vertical lines and, between each pair of neighbours, places where a rung (a crossbar)
 // may be. `rungs[row][gap]` is true when a rung joins column `gap` and column `gap + 1` in that row.
 
+import { cryptoRng, type Rng } from '../../lib/random'
+
+// The ladder used to define these two; they live in lib/random.ts now, and are passed on from here.
+export { cryptoRng }
+export type { Rng }
+
 export const MIN_COLUMNS = 2
 export const MAX_COLUMNS = 20
 export const DEFAULT_COLUMNS = 4
 
 export type Density = 'low' | 'normal' | 'high'
 export type Rungs = boolean[][]
-// A function that gives a number from 0 up to, but not including, 1.
-export type Rng = () => number
 
 // Whole numbers only, and always inside the allowed range.
 export function clampColumns(value: number): number {
@@ -24,16 +28,6 @@ export function settleColumns(text: string, current: number): number {
   const value = Number(text)
   if (text.trim() === '' || !Number.isFinite(value)) return current
   return clampColumns(value)
-}
-
-// The random numbers for a real game. They come from the browser's secure generator, so nobody can predict the
-// ladder from earlier ones.
-export function cryptoRng(): Rng {
-  return () => {
-    const buffer = new Uint32Array(1)
-    crypto.getRandomValues(buffer)
-    return buffer[0] / 4294967296
-  }
 }
 
 // --- What the player typed ---

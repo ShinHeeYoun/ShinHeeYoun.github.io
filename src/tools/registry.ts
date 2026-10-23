@@ -22,6 +22,12 @@ export const tools = [
     description: '열 수와 이름·결과를 정하고 시작하면 사다리가 만들어집니다. 길을 눌러 하나씩 확인하거나 전체 결과를 한 번에 볼 수 있습니다.',
     wide: true,
   },
+  {
+    id: 'yacht',
+    name: 'Yacht Dice',
+    description: '주사위 5개를 최대 3번 굴려 12개 칸을 채우는 요트 다이스입니다. 굴리기 버튼을 누르고 있는 동안 주사위 눈이 바뀌다가, 떼는 순간 결정됩니다.',
+    wide: true,
+  },
 ] as const satisfies readonly ToolMeta[]
 
 export type ToolId = (typeof tools)[number]['id']

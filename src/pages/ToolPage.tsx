@@ -3,12 +3,14 @@ import type { ComponentType } from 'react'
 import CalculatorView from '../tools/calculator/CalculatorView'
 import DinoView from '../tools/dino/DinoView'
 import LadderView from '../tools/ladder/LadderView'
+import YachtView from '../tools/yacht/YachtView'
 import { tools, type ToolId, type ToolMeta } from '../tools/registry'
 
 const toolViews: Record<ToolId, ComponentType> = {
   calculator: CalculatorView,
   dino: DinoView,
   ladder: LadderView,
+  yacht: YachtView,
 }
 
 export default function ToolPage() {
