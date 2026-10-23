@@ -51,7 +51,10 @@ export default function Blog() {
           <Link key={post.slug} to={`/blog/${post.slug}`} className="block">
             <article className="card">
               <h2 className="card-title">{title ? <Highlight text={title} /> : post.title}</h2>
-              <p className="mt-1 text-sm text-muted">{post.date}</p>
+              <p className="mt-1 text-sm text-muted">
+                {post.date}
+                {post.format === 'html' && <span className="tag ml-2">HTML</span>}
+              </p>
               <p className="mt-2 break-words text-foreground/80">
                 {snippet ? <Highlight text={snippet} /> : post.excerpt}
               </p>

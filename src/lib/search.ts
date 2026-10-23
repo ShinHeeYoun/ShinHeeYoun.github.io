@@ -1,4 +1,5 @@
 import type { Post } from './posts'
+import { htmlToText } from './htmlPost'
 import { stripLeadingTitle, toPlainText } from './markdown'
 
 export type Match = { index: number; length: number }
@@ -60,7 +61,7 @@ const visibleText = new WeakMap<Post, string>()
 function bodyText(post: Post): string {
   let text = visibleText.get(post)
   if (text === undefined) {
-    text = toPlainText(stripLeadingTitle(post.body, post.title), true)
+    text = post.format === 'html' ? htmlToText(post.body) : toPlainText(stripLeadingTitle(post.body, post.title), true)
     visibleText.set(post, text)
   }
   return text

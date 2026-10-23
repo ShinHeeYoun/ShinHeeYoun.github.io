@@ -16,9 +16,8 @@ export default function Delete() {
     setStatus(null)
     setWorking(post.slug)
     try {
-      const path = `src/content/posts/${post.slug}.md`
-      const { sha } = await getFile(path, pat)
-      await deleteFile(path, `post: delete ${post.title}`, sha, pat)
+      const { sha } = await getFile(post.path, pat)
+      await deleteFile(post.path, `post: delete ${post.title}`, sha, pat)
       setRemoved((slugs) => [...slugs, post.slug])
       setStatus('삭제됨 — 배포까지 약 1분 정도 걸려요.')
     } catch (error) {
@@ -40,6 +39,7 @@ export default function Delete() {
           <li key={post.slug} className="flex items-center justify-between gap-3 rounded-md border border-border p-3">
             <span className="min-w-0 break-words">
               {post.title} <span className="text-xs text-muted">({post.date})</span>
+              {post.format === 'html' && <span className="tag ml-2">HTML</span>}
             </span>
             <button
               type="button"

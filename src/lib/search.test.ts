@@ -3,7 +3,7 @@ import type { Post } from './posts'
 import { findFirst, makeSnippet, searchPosts } from './search'
 
 function post(slug: string, title: string, body: string, date = '2026-10-01'): Post {
-  return { slug, title, date, excerpt: '', body }
+  return { slug, format: 'md', path: `src/content/posts/${slug}.md`, title, date, excerpt: '', body }
 }
 
 describe('findFirst', () => {
@@ -156,5 +156,25 @@ describe('searchPosts', () => {
   it('treats special characters in the query literally', () => {
     expect(searchPosts([post('p', '제목', 'call foo(bar) now')], '(')).toHaveLength(1)
     expect(searchPosts([post('p', '제목', 'abc')], '.*')).toEqual([])
+  })
+})
+
+describe('searching HTML posts', () => {
+  const page: Post = {
+    ...post('page', 'Uploaded page', '', '2026-10-22'),
+    format: 'html',
+    path: 'src/content/posts/page.html',
+    body: '<head><style>.zebra{color:red}</style></head><body><script>var hidden = "needle"</script><p>The <b>visible</b> sentence</p></body>',
+  }
+
+  it('finds text the reader sees', () => {
+    const [result] = searchPosts([page], 'visible sentence')
+    expect(result.post.slug).toBe('page')
+    expect(result.snippet?.match).toBe('visible sentence')
+  })
+
+  it('does not find what is only in scripts or styles', () => {
+    expect(searchPosts([page], 'needle')).toEqual([])
+    expect(searchPosts([page], 'zebra')).toEqual([])
   })
 })

@@ -1,41 +1,58 @@
 import { parseFrontmatter } from './frontmatter'
+import { htmlToText, parseHtmlPost } from './htmlPost'
 import { toExcerpt } from './markdown'
 
 export type Post = {
   slug: string
+  format: 'md' | 'html' // markdown, or an uploaded HTML page
+  path: string // where the file is in the repository
   title: string
   date: string
   excerpt: string
-  body: string
+  body: string // the markdown, or the whole HTML page
 }
 
 const EXCERPT_LENGTH = 80
 
-const files = import.meta.glob('/src/content/posts/*.md', {
+const files = import.meta.glob('/src/content/posts/*.{md,html}', {
   query: '?raw',
   import: 'default',
   eager: true,
 }) as Record<string, string>
 
 function slugFromPath(path: string): string {
-  const match = path.match(/([^/]+)\.md$/)
+  const match = path.match(/([^/]+)\.(?:md|html)$/)
   if (!match) {
     throw new Error(`Unexpected post file path: ${path}`)
   }
   return match[1]
 }
 
+function parsePost(path: string, raw: string): Post {
+  const slug = slugFromPath(path)
+  const repoPath = path.replace(/^\//, '')
+
+  if (path.endsWith('.html')) {
+    const { title, date, html } = parseHtmlPost(raw)
+    const text = htmlToText(html)
+    const excerpt = text.length > EXCERPT_LENGTH ? `${text.slice(0, EXCERPT_LENGTH)}...` : text
+    return { slug, format: 'html', path: repoPath, title, date, excerpt, body: html }
+  }
+
+  const { frontmatter, body } = parseFrontmatter(raw)
+  return {
+    slug,
+    format: 'md',
+    path: repoPath,
+    title: frontmatter.title,
+    date: frontmatter.date,
+    excerpt: toExcerpt(body, frontmatter.title, EXCERPT_LENGTH),
+    body,
+  }
+}
+
 export const posts: Post[] = Object.entries(files)
-  .map(([path, raw]) => {
-    const { frontmatter, body } = parseFrontmatter(raw)
-    return {
-      slug: slugFromPath(path),
-      title: frontmatter.title,
-      date: frontmatter.date,
-      excerpt: toExcerpt(body, frontmatter.title, EXCERPT_LENGTH),
-      body,
-    }
-  })
+  .map(([path, raw]) => parsePost(path, raw))
   .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))
 
 export function generateSlug(date: string): string {

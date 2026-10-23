@@ -1,33 +1,34 @@
 import { useState } from 'react'
 import AdminNotice from '../components/AdminNotice'
 import { useAdmin } from '../components/AdminContext'
+import HtmlEditor from '../components/HtmlEditor'
 import PostEditor from '../components/PostEditor'
 import { createOrUpdateFile } from '../lib/github'
 import { serializeFrontmatter } from '../lib/frontmatter'
+import { composeDraft, draftProblem, emptyHtmlDraft, serializeHtmlPost } from '../lib/htmlPost'
 import { generateSlug, getLocalDateString } from '../lib/posts'
+
+type Format = 'md' | 'html'
+
+const publishButton =
+  'rounded-md bg-accent px-4 py-2 text-background transition-colors hover:bg-accent-hover disabled:opacity-50'
 
 export default function Write() {
   const { pat } = useAdmin()
+  const [format, setFormat] = useState<Format>('md')
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
+  const [draft, setDraft] = useState(emptyHtmlDraft)
   const [status, setStatus] = useState<string | null>(null)
   const [isPublishing, setIsPublishing] = useState(false)
 
-  async function handlePublish() {
+  async function publish(path: string, content: string, postTitle: string, reset: () => void) {
     setStatus(null)
     setIsPublishing(true)
     try {
-      const date = getLocalDateString()
-      const slug = generateSlug(date)
-      await createOrUpdateFile(
-        `src/content/posts/${slug}.md`,
-        serializeFrontmatter({ title, date }, body),
-        `post: ${title}`,
-        pat,
-      )
+      await createOrUpdateFile(path, content, `post: ${postTitle}`, pat)
       setStatus('게시됨 — 배포까지 약 1분 정도 걸려요.')
-      setTitle('')
-      setBody('')
+      reset()
     } catch (error) {
       setStatus(error instanceof Error ? error.message : '게시 중 오류가 발생했습니다.')
     } finally {
@@ -35,27 +36,64 @@ export default function Write() {
     }
   }
 
+  function publishMarkdown() {
+    const date = getLocalDateString()
+    void publish(`src/content/posts/${generateSlug(date)}.md`, serializeFrontmatter({ title, date }, body), title, () => {
+      setTitle('')
+      setBody('')
+    })
+  }
+
+  function publishHtml() {
+    const page = composeDraft(draft)
+    if (page === null) return
+    const date = getLocalDateString()
+    void publish(
+      `src/content/posts/${generateSlug(date)}.html`,
+      serializeHtmlPost({ title: draft.title, date }, page),
+      draft.title,
+      () => setDraft(emptyHtmlDraft),
+    )
+  }
+
   return (
     <main className="w-full px-6 py-12 md:px-12">
       <h1 className="text-2xl font-bold">Write</h1>
       <AdminNotice />
 
-      <PostEditor
-        title={title}
-        body={body}
-        date={getLocalDateString()}
-        onTitleChange={setTitle}
-        onBodyChange={setBody}
-      >
-        <button
-          type="button"
-          onClick={handlePublish}
-          disabled={isPublishing || !title || !body}
-          className="rounded-md bg-accent px-4 py-2 text-background transition-colors hover:bg-accent-hover disabled:opacity-50"
+      <div className="mt-6 flex items-center gap-3">
+        <label htmlFor="post-format" className="text-sm font-medium">
+          형식
+        </label>
+        <select
+          id="post-format"
+          value={format}
+          onChange={(event) => setFormat(event.target.value as Format)}
+          className="rounded-md border border-border bg-surface px-3 py-1.5 text-sm text-foreground"
         >
-          {isPublishing ? '게시 중...' : '게시'}
-        </button>
-      </PostEditor>
+          <option value="md">Markdown</option>
+          <option value="html">HTML</option>
+        </select>
+      </div>
+
+      {format === 'md' ? (
+        <PostEditor title={title} body={body} date={getLocalDateString()} onTitleChange={setTitle} onBodyChange={setBody}>
+          <button type="button" onClick={publishMarkdown} disabled={isPublishing || !title || !body} className={publishButton}>
+            {isPublishing ? '게시 중...' : '게시'}
+          </button>
+        </PostEditor>
+      ) : (
+        <HtmlEditor draft={draft} onChange={setDraft}>
+          <button
+            type="button"
+            onClick={publishHtml}
+            disabled={isPublishing || !draft.title.trim() || draftProblem(draft) !== null}
+            className={publishButton}
+          >
+            {isPublishing ? '게시 중...' : '게시'}
+          </button>
+        </HtmlEditor>
+      )}
 
       {status && <p className="mt-4 text-sm">{status}</p>}
     </main>

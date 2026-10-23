@@ -9,12 +9,12 @@ Claude와 함께 만든 개발 연습 페이지입니다. 터미널 느낌의 �
 - **Blog**: 마크다운으로 쓴 글, 제목과 본문 검색(찾은 부분을 빨간 글씨로 표시), 글 안의 목차 링크
 - **Tools**: 계산기, 크롬 오프라인 공룡 게임을 본뜬 점프 게임
 - **라이브 서버 상태**: 따로 운영하는 서버의 힙 메모리, 스레드, CPU 같은 값을 10초마다 보여주는 카드
-- **글 관리(관리자 전용)**: 작성·수정·삭제 화면과 미리보기. GitHub 토큰으로 로그인하면 브라우저에서 저장소에 직접 글을 올립니다.
+- **글 관리(관리자 전용)**: 작성·수정·삭제 화면과 미리보기. GitHub 토큰으로 로그인하면 브라우저에서 저장소에 직접 글을 올립니다. 글은 Markdown으로 쓰거나, HTML 파일(과 CSS 파일)을 올려서 만들 수 있고 HTML 글은 격리된 틀 안에서 보여줍니다.
 - 다크/라이트 테마
 
 ## 만든 방법
 
-React 18, TypeScript, Vite, Tailwind CSS, React Router(HashRouter), 테스트는 Vitest를 씁니다. 글은 `src/content/posts/*.md` 파일이고, 서버 없이 빌드할 때 읽어 들입니다. `main` 브랜치에 push하면 GitHub Actions가 테스트, 빌드, 배포를 차례로 실행합니다.
+React 18, TypeScript, Vite, Tailwind CSS, React Router(HashRouter), 테스트는 Vitest를 씁니다. 글은 `src/content/posts/` 안의 `.md` 또는 `.html` 파일이고, 서버 없이 빌드할 때 읽어 들입니다. `main` 브랜치에 push하면 GitHub Actions가 테스트, 빌드, 배포를 차례로 실행합니다.
 
 ## 직접 실행하기
 
