@@ -8,7 +8,6 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -35,9 +34,6 @@ final class ScoreService {
     private static final Pattern ID = Pattern.compile("[A-Za-z0-9-]{1,64}");
     private static final Duration FUTURE_ALLOWED = Duration.ofMinutes(5); // clocks differ a little
     private static final Duration MAX_AGE = Duration.ofDays(7);
-
-    /** The answer: a status, a JSON body, and headers. */
-    record Response(int status, String body, Map<String, String> headers) {}
 
     private record Cached(long expiresAt, String body) {}
 
@@ -74,10 +70,7 @@ final class ScoreService {
         long now = clock.millis();
         // Every attempt counts, good or bad, so that guessing does not cost nothing.
         if (!limiter.tryAcquire(client, now)) {
-            Response tooMany = error(429, "too many requests: try again later");
-            Map<String, String> headers = new LinkedHashMap<>(tooMany.headers());
-            headers.put("Retry-After", String.valueOf(Math.max(1, limiter.secondsUntilFree(client, now))));
-            return new Response(429, tooMany.body(), headers);
+            return Response.tooMany(limiter, client, now);
         }
         if (body.length > MAX_BODY_BYTES) return error(413, "the request is too large");
         if (contentType == null || !contentType.toLowerCase().startsWith("application/json")) {
@@ -189,20 +182,15 @@ final class ScoreService {
     // --- Answers ---
 
     private static Response json(int status, String body, String cacheControl) {
-        Map<String, String> headers = new LinkedHashMap<>();
-        headers.put("Cache-Control", cacheControl);
-        return new Response(status, body, headers);
+        return Response.json(status, body, cacheControl);
     }
 
     private static Response error(int status, String message) {
-        return json(status, "{\"error\":" + Json.quote(message) + "}", "no-store");
+        return Response.error(status, message);
     }
 
     private static Response notAllowed(String allowed) {
-        Response response = error(405, "method not allowed");
-        Map<String, String> headers = new LinkedHashMap<>(response.headers());
-        headers.put("Allow", allowed);
-        return new Response(405, response.body(), headers);
+        return Response.notAllowed(allowed);
     }
 
     private Response unavailable(String what, Exception e) {

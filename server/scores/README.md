@@ -1,7 +1,8 @@
-# scores: saving Yacht Dice scores in the database
+# scores: Yacht Dice scores and the guestbook, in the database
 
 A small Java servlet app (`scores.war`) for Tomcat 9. It receives finished Yacht Dice games from the site, checks that
-each one is a real game, and keeps it in an Oracle Autonomous Database. It also lists the top scores. All the
+each one is a real game, and keeps it in an Oracle Autonomous Database. It also lists the top scores. The same app
+runs the site's guestbook (see "Guestbook" below), so both share one connection pool. All the
 features of the site that need a database share **one database user** (`HOMEPAGE_APP`), whose settings are in one file
 on the server.
 
@@ -13,7 +14,8 @@ browser (GitHub Pages) -> https://<server name>/scores/api/... -> nginx -> Tomca
 |---|---|
 | `schema.sql` | Creates the `YACHT_SCORE` table (Oracle 12c or later) |
 | `migration-001-nickname.sql` | Adds `NICKNAME` to a table made from the first version of `schema.sql` |
-| `queries.sql` | The three statements the server runs: save, top scores, recent games |
+| `queries.sql` | The three statements the server runs for Yacht Dice: save, top scores, recent games |
+| `guestbook-schema.sql` | Creates the `GUESTBOOK` table |
 | `src/main/java/...` | The app. `ScoreService` holds all the logic and knows nothing of servlets or the database |
 | `src/test/java/...` | The tests (`Tests.java`, no test library); they need neither Tomcat nor a database |
 | `fixtures/` | Cases shared with the site's own tests (nicknames and game records), so both sides agree |
@@ -95,6 +97,46 @@ server rolls the dice). This design only keeps out impossible scores, typing mis
 Also: the body is limited to 16 KB, nginx limits requests per address, every SQL value is a bind variable, and the
 error answers never contain database messages, addresses or passwords.
 
+## Guestbook
+
+The Guestbook tab of the site: anyone can write a comment with an id, a password and a text of at most 300 characters;
+the text is shown as Markdown. A comment can be answered with replies (one level deep: a reply answers a comment, never
+another reply). Code: `GuestbookService.java` (the rules), `OracleGuestbookRepository.java` (the SQL),
+`PasswordHasher.java`, `GitHubAdminVerifier.java`; on the site `src/pages/Guestbook.tsx` and `src/guestbook/`.
+
+| Request | Meaning |
+|---|---|
+| `GET /scores/api/guestbook?limit=20&before=ID` | Comments, newest first (1 to 50 at a time); `before` asks for the next page. Answers `{"comments": [...], "hasMore": true}` |
+| `POST /scores/api/guestbook` | Write `{"author", "password", "body"}`, plus `"parentId"` for a reply. `201` with the entry as kept |
+| `GET /scores/api/guestbook/{id}/replies` | The replies to a comment, oldest first |
+| `POST /scores/api/guestbook/{id}/delete` | Delete with `{"password"}`, or as the admin with `Authorization: Bearer <GitHub token>` and no password |
+
+Other answers: `400` (what is wrong is said in the body), `403` (wrong password, or a token that is not the admin's),
+`404`, `413`, `415`, `429`, `503`. An entry is `{"id", "parentId"?, "author", "body", "createdAt", "replyCount"}`:
+the password, its hash, the writer's address and browser are never sent out.
+
+- **Rules**: the author follows the nickname rules (1 to 12 letters, digits, `_`, `-`, single spaces); the password is
+  4 to 32 characters; the text is 1 to 300 characters (an emoji counts as one) with no control characters other than
+  line breaks and tabs. The site checks the same numbers (`src/guestbook/rules.ts`), and `src/guestbook/schema.test.ts`
+  fails if the site, the Java code and `guestbook-schema.sql` drift apart.
+- **What is recorded**: for each entry the table keeps the writer's IP address (`CLIENT_IP`, from nginx's
+  `X-Forwarded-For`), the browser's name (`USER_AGENT`, at most 300 characters) and the time (`CREATED_AT`). These are
+  never shown on the site, and the form says that they are recorded.
+- **Passwords**: kept as a salted PBKDF2-SHA256 hash, not as text. A delete password is only ever compared, never read
+  back, so nothing is lost by this, and the table holds no password somebody might use elsewhere.
+- **SQL injection**: every statement in `OracleGuestbookRepository.java` is a constant and every value is a bind
+  variable (`?`); nothing a visitor writes is joined into SQL. A test fails if a statement is built from text.
+- **Markdown**: shown by `GuestbookMarkdown.tsx`, which builds the page from marked's tokens and never from its HTML.
+  Raw HTML is shown as text, links work only for http, https and mailto, and images are not loaded.
+- **Admin**: the admin login of the site keeps a GitHub token in the browser. When the admin deletes, the site sends
+  that token in `Authorization: Bearer`, and the server asks GitHub whether it may push to the site's repository
+  (`GET /repos/ShinHeeYoun/ShinHeeYoun.github.io`, `permissions.push`), the same question the login asks. The server
+  needs to reach `api.github.com`. A yes is remembered for 5 minutes under a SHA-256 of the token; the token itself is
+  never stored or logged.
+- **Limits**: 5 writes per 10 minutes and 30 delete attempts per 10 minutes for one address, and 10 password guesses
+  an hour for one comment (so a password cannot be guessed; the admin is not held up by it). Deleting a comment deletes
+  its replies with it (`ON DELETE CASCADE`).
+
 ## Database access: where the secrets go
 
 This repository is public. **Never commit the JDBC address, user name or password.** The app reads them, when the
@@ -118,7 +160,7 @@ The same file is meant for every other feature of the site that needs the databa
 
 Each step changes the server, so each is done by hand:
 
-1. Create the table: `schema.sql`, or `migration-001-nickname.sql` if the table already exists without `NICKNAME`.
+1. Create the tables: `schema.sql` (or `migration-001-nickname.sql` if `YACHT_SCORE` already exists without `NICKNAME`) and `guestbook-schema.sql`.
 2. Copy `build/scores.war` to `/opt/tomcat/webapps/` (owner `tomcat`). Tomcat deploys it without a restart.
 3. Add a `/scores/` location to nginx, as for `/status/` (`../nginx/shinheeyoun.conf`): a request limit, a 16 KB body
    limit, and `proxy_set_header X-Forwarded-For $remote_addr` (the app counts saves per that address).

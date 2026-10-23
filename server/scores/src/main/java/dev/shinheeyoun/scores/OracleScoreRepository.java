@@ -22,9 +22,9 @@ final class OracleScoreRepository implements ScoreRepository {
             "SELECT ID, PLAYED_AT, TOTAL, UPPER_SUM, BONUS, NICKNAME FROM YACHT_SCORE"
                     + " ORDER BY PLAYED_AT DESC FETCH FIRST ? ROWS ONLY";
 
-    private final ConnectionPool pool;
+    private final Connections pool;
 
-    OracleScoreRepository(ConnectionPool pool) {
+    OracleScoreRepository(Connections pool) {
         this.pool = pool;
     }
 

@@ -40,13 +40,17 @@ final class Json {
         return value;
     }
 
-    /** The text as a JSON string with its quotes. Control characters become spaces; the rest is escaped. */
+    /** The text as a JSON string with its quotes: quotes, backslashes and control characters are escaped. */
     static String quote(String value) {
+        final char backslash = (char) 92;
         StringBuilder out = new StringBuilder(value.length() + 2).append('"');
         for (int i = 0; i < value.length(); i++) {
             char c = value.charAt(i);
-            if (c == '"' || c == '\\') out.append('\\').append(c);
-            else if (c < 0x20) out.append(' ');
+            if (c == '"' || c == backslash) out.append(backslash).append(c);
+            else if (c == 10) out.append(backslash).append('n');
+            else if (c == 13) out.append(backslash).append('r');
+            else if (c == 9) out.append(backslash).append('t');
+            else if (c < 0x20) out.append(backslash).append('u').append(String.format("%04x", (int) c));
             else out.append(c);
         }
         return out.append('"').toString();

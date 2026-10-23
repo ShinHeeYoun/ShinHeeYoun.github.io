@@ -75,6 +75,7 @@ public final class Tests {
         poolTests();
         limiterTests();
         serviceTests(fixtures);
+        GuestbookTests.run();
         System.out.println(passed + " passed, " + failed + " failed");
         if (failed > 0) System.exit(1);
     }
@@ -140,11 +141,14 @@ public final class Tests {
             fails(Json.JsonException.class, () -> Json.parse("1" + "0".repeat(40)));
         });
 
-        test("json: quote escapes what must be escaped and turns control characters into spaces", () -> {
+        test("json: quote escapes what must be escaped, and what it writes reads back the same", () -> {
             eq("\"plain\"", Json.quote("plain"));
             eq("\"a" + BS + "\"b\"", Json.quote("a\"b"));
             eq("\"a" + BS + BS + "b\"", Json.quote("a" + BS + "b"));
-            eq("\"a b c\"", Json.quote("a\nb\tc"));
+            eq("\"a" + BS + "nb" + BS + "tc\"", Json.quote("a\nb\tc"));
+            eq("\"" + BS + "u0001" + BS + "r\"", Json.quote(String.valueOf((char) 1) + (char) 13));
+            String everything = "line1\nline2\r\n\ttab " + (char) 0 + (char) 31 + (char) 127 + " \"q\" " + BS + " " + (char) 0xD55C;
+            eq(everything, Json.parse(Json.quote(everything)));
             eq("\"" + (char) 0xD55C + "\"", Json.quote(String.valueOf((char) 0xD55C)));
         });
     }
@@ -636,7 +640,7 @@ public final class Tests {
         throw new AssertionError("no real game number " + n);
     }
 
-    static ScoreService.Response post(ScoreService service, Object body, String client) {
+    static Response post(ScoreService service, Object body, String client) {
         byte[] bytes = (body instanceof String text ? text : toJson(body)).getBytes(StandardCharsets.UTF_8);
         return service.handle("POST", "/yacht", null, "application/json", bytes, client);
     }
@@ -652,7 +656,7 @@ public final class Tests {
             MemoryRepository repository = new MemoryRepository();
             ScoreService service = newService(repository, new TestClock(soonAfter), new ArrayList<>());
             Map<String, Object> game = realGame(fixtures, 0, "game-1", "  Kim   Lee ");
-            ScoreService.Response response = post(service, game, "1.2.3.4");
+            Response response = post(service, game, "1.2.3.4");
             eq(201, response.status());
             eq("{\"status\":\"saved\"}", response.body());
             eq(1, repository.saved.size());
@@ -672,7 +676,7 @@ public final class Tests {
             ScoreService service = newService(repository, new TestClock(soonAfter), new ArrayList<>());
             Map<String, Object> game = realGame(fixtures, 0, "game-1", "Kim");
             eq(201, post(service, game, "1.2.3.4").status());
-            ScoreService.Response again = post(service, game, "1.2.3.4");
+            Response again = post(service, game, "1.2.3.4");
             eq(200, again.status());
             eq("{\"status\":\"duplicate\"}", again.body());
             eq(1, repository.saved.size());
@@ -692,7 +696,7 @@ public final class Tests {
             int n = 0;
             for (String id : new String[] {"", "has space", "semi;colon", "quote'", "x".repeat(65), "한글"}) {
                 Map<String, Object> game = realGame(fixtures, 0, id, "Kim");
-                ScoreService.Response response = post(service, game, "ip-" + n++);
+                Response response = post(service, game, "ip-" + n++);
                 eq(400, response.status());
                 yes(response.body().contains("invalid id"), response.body());
             }
@@ -703,7 +707,7 @@ public final class Tests {
             for (Object time : new Object[] {"yesterday", "2026-13-45T00:00:00Z", "", 12345L, null}) {
                 Map<String, Object> game = realGame(fixtures, 0, "t" + n, "Kim");
                 game.put("playedAt", time);
-                ScoreService.Response response = post(service, game, "ip-" + n++);
+                Response response = post(service, game, "ip-" + n++);
                 eq(400, response.status());
                 yes(response.body().contains("playedAt"), response.body());
             }
@@ -711,7 +715,7 @@ public final class Tests {
             for (Object nickname : new Object[] {"", "   ", "<b>x</b>", "abcdefghijklm", 5L, null}) {
                 Map<String, Object> game = realGame(fixtures, 0, "n" + n, "Kim");
                 game.put("nickname", nickname);
-                ScoreService.Response response = post(service, game, "ip-" + n++);
+                Response response = post(service, game, "ip-" + n++);
                 eq(400, response.status());
                 yes(response.body().contains("invalid nickname"), response.body());
             }
@@ -726,11 +730,11 @@ public final class Tests {
             ScoreService service = newService(repository, clock, new ArrayList<>());
             eq(201, post(service, realGame(fixtures, 0, "a", "Kim"), "x1").status());
             clock.now = PLAYED.minusSeconds(3600).toEpochMilli(); // an hour behind: the game is from the future
-            ScoreService.Response future = post(service, realGame(fixtures, 1, "b", "Kim"), "x2");
+            Response future = post(service, realGame(fixtures, 1, "b", "Kim"), "x2");
             eq(400, future.status());
             yes(future.body().contains("future"), future.body());
             clock.now = PLAYED.plusSeconds(8L * 24 * 3600).toEpochMilli(); // eight days later: too old
-            ScoreService.Response old = post(service, realGame(fixtures, 2, "c", "Kim"), "x3");
+            Response old = post(service, realGame(fixtures, 2, "c", "Kim"), "x3");
             eq(400, old.status());
             yes(old.body().contains("too old"), old.body());
             eq(1, repository.saved.size());
@@ -741,7 +745,7 @@ public final class Tests {
             ScoreService service = newService(repository, new TestClock(soonAfter), new ArrayList<>());
             Map<String, Object> wrongTotal = realGame(fixtures, 0, "w1", "Kim");
             wrongTotal.put("total", (Long) wrongTotal.get("total") + 1);
-            ScoreService.Response response = post(service, wrongTotal, "y1");
+            Response response = post(service, wrongTotal, "y1");
             eq(400, response.status());
             yes(response.body().contains("not a real game"), response.body());
             Map<String, Object> fewTurns = realGame(fixtures, 0, "w2", "Kim");
@@ -770,7 +774,7 @@ public final class Tests {
             for (int i = 0; i < ScoreService.SAVES_PER_WINDOW; i++) {
                 eq(201, post(service, realGame(fixtures, i % 5, "g" + i, "Kim"), "9.9.9.9").status());
             }
-            ScoreService.Response limited = post(service, realGame(fixtures, 0, "one-more", "Kim"), "9.9.9.9");
+            Response limited = post(service, realGame(fixtures, 0, "one-more", "Kim"), "9.9.9.9");
             eq(429, limited.status());
             yes(Long.parseLong(limited.headers().get("Retry-After")) >= 1, "Retry-After is given");
             eq(201, post(service, realGame(fixtures, 0, "someone-else", "Kim"), "8.8.8.8").status());
@@ -788,7 +792,7 @@ public final class Tests {
             MemoryRepository repository = new MemoryRepository();
             ScoreService service = newService(repository, new TestClock(soonAfter), new ArrayList<>());
             for (int i = 0; i < 6; i++) eq(201, post(service, realGame(fixtures, i, "g" + i, "P" + i), "ip" + i).status());
-            ScoreService.Response response = service.handle("GET", "/yacht/top", "limit=4", null, new byte[0], "r");
+            Response response = service.handle("GET", "/yacht/top", "limit=4", null, new byte[0], "r");
             eq(200, response.status());
             List<?> rows = (List<?>) Json.parse(response.body());
             eq(4, rows.size());
@@ -855,7 +859,7 @@ public final class Tests {
             List<String> log = new ArrayList<>();
             ScoreService service = newService(repository, new TestClock(soonAfter), log);
             repository.down = true;
-            ScoreService.Response saving = post(service, realGame(fixtures, 0, "a", "A"), "i1");
+            Response saving = post(service, realGame(fixtures, 0, "a", "A"), "i1");
             eq(503, saving.status());
             yes(saving.body().contains("database"), saving.body());
             eq(503, service.handle("GET", "/yacht/top", null, null, new byte[0], "r").status());
@@ -871,10 +875,10 @@ public final class Tests {
             eq(404, service.handle("GET", null, null, null, new byte[0], "r").status());
             eq(404, service.handle("GET", "/yacht/best", null, null, new byte[0], "r").status());
             eq(404, service.handle("GET", "/other", null, null, new byte[0], "r").status());
-            ScoreService.Response get = service.handle("GET", "/yacht", null, null, new byte[0], "r");
+            Response get = service.handle("GET", "/yacht", null, null, new byte[0], "r");
             eq(405, get.status());
             eq("POST", get.headers().get("Allow"));
-            ScoreService.Response delete = service.handle("DELETE", "/yacht/top", null, null, new byte[0], "r");
+            Response delete = service.handle("DELETE", "/yacht/top", null, null, new byte[0], "r");
             eq(405, delete.status());
             eq("GET", delete.headers().get("Allow"));
             eq(405, service.handle("POST", "/yacht/top", null, "application/json", "{}".getBytes(StandardCharsets.UTF_8), "r").status());
@@ -884,14 +888,14 @@ public final class Tests {
         test("service: every answer is valid JSON, and errors name no secrets", () -> {
             MemoryRepository repository = new MemoryRepository();
             ScoreService service = newService(repository, new TestClock(soonAfter), new ArrayList<>());
-            List<ScoreService.Response> answers = new ArrayList<>();
+            List<Response> answers = new ArrayList<>();
             answers.add(post(service, "{", "a"));
             answers.add(post(service, realGame(fixtures, 0, "ok", "Kim"), "b"));
             answers.add(service.handle("GET", "/yacht/top", null, null, new byte[0], "r"));
             answers.add(service.handle("GET", "/nope", null, null, new byte[0], "r"));
             repository.down = true;
             answers.add(service.handle("GET", "/yacht/recent", null, null, new byte[0], "r"));
-            for (ScoreService.Response answer : answers) {
+            for (Response answer : answers) {
                 Json.parse(answer.body());
                 yes(!answer.body().toLowerCase().contains("password"), "no password in " + answer.body());
                 yes(!answer.body().contains("SQLException"), "no internals in " + answer.body());
