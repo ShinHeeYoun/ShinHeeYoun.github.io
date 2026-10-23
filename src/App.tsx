@@ -11,6 +11,7 @@ import Delete from './pages/Delete'
 import Tools from './pages/Tools'
 import ToolPage from './pages/ToolPage'
 import About from './pages/About'
+import ERS from './pages/ERS'
 
 export default function App() {
   return (
@@ -46,6 +47,7 @@ export default function App() {
         />
         <Route path="/tools" element={<Tools />} />
         <Route path="/tools/:id" element={<ToolPage />} />
+        <Route path="/ers" element={<ERS />} />
         <Route path="/about" element={<About />} />
       </Routes>
     </AdminProvider>
