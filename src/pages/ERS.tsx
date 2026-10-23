@@ -17,8 +17,8 @@ export default function ERS() {
         </a>
       </div>
       <p className="mt-2 text-sm text-muted">
-        따로 운영하는 서버(Oracle Cloud의 Tomcat)에 올린 보고서 뷰어를 이 페이지 안에서 바로 씁니다. 화면이 비거나
-        보고서가 열리지 않으면 새 탭에서 열어 보세요.
+        MRD 경로에는 ReportingServer가 접근 가능한 경로가 올라가야 합니다. 예시로 파일 서버 도메인 경로나 구글 드라이브
+        경로가 있습니다.
       </p>
 
       <iframe
