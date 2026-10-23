@@ -1,39 +1,49 @@
-# scores: saving Yacht Dice scores in a database
+# scores: saving Yacht Dice scores in the database
 
-Status: **prepared, not connected.** The game on the site keeps scores in the player's own browser
-(`LocalScoreStore`). Everything here is for the day an Oracle Cloud database is ready. Nothing in this folder runs yet,
-and the site never calls it.
+A small Java servlet app (`scores.war`) for Tomcat 9. It receives finished Yacht Dice games from the site, checks that
+each one is a real game, and keeps it in an Oracle Autonomous Database. It also lists the top scores. All the
+features of the site that need a database share **one database user** (`HOMEPAGE_APP`), whose settings are in one file
+on the server.
+
+```
+browser (GitHub Pages) -> https://<server name>/scores/api/... -> nginx -> Tomcat: scores.war -> JDBC -> Oracle
+```
 
 | File | What it is |
 |---|---|
 | `schema.sql` | Creates the `YACHT_SCORE` table (Oracle 12c or later) |
+| `migration-001-nickname.sql` | Adds `NICKNAME` to a table made from the first version of `schema.sql` |
 | `queries.sql` | The three statements the server runs: save, top scores, recent games |
-| `README.md` | The request format, what the server must check, and how to connect it later |
+| `src/main/java/...` | The app. `ScoreService` holds all the logic and knows nothing of servlets or the database |
+| `src/test/java/...` | The tests (`Tests.java`, no test library); they need neither Tomcat nor a database |
+| `fixtures/` | Cases shared with the site's own tests (nicknames and game records), so both sides agree |
+| `build.ps1` | Compiles, runs the tests, and builds `build/scores.war` |
 
-## How the site will use it
+## Building
 
-`src/tools/yacht/scoreStore.ts` has a `ScoreStore` interface with two implementations:
-
-- `LocalScoreStore`: this browser only. This is what `YachtView.tsx` uses now.
-- `RemoteScoreStore`: talks to the server described below. It is finished and tested, but not used by any page.
-
-To switch, change one line in `YachtView.tsx`:
-
-```ts
-const store = useMemo(() => new RemoteScoreStore('https://<server name>'), [])
+```powershell
+powershell -File server\scores\build.ps1
 ```
+
+Needs a JDK 17 or later on the `PATH`. The script compiles with warnings as errors, runs the tests (and builds no war
+if one fails), and packs the war. Two jars are not in this repository (`server/scores/lib/` is ignored):
+
+- `servlet-api.jar`, only for compiling, copied from `../status/lib/` (see `../status/README.md`).
+- The Oracle JDBC driver `ojdbc11`, downloaded from Maven Central the first time, checked against the SHA-1 that Maven
+  Central publishes, and packed **into the war**. Tomcat's own `lib/` is not touched, so Tomcat need not be restarted.
 
 ## Requests
 
 All under `/scores/api/yacht`, JSON. Only the site's own address (`https://shinheeyoun.github.io`) may call them from a
-browser (CORS), like the status app.
+browser (CORS, set in `web.xml`).
 
-**Save a game: `POST /scores/api/yacht`**
+**Save a game: `POST /scores/api/yacht`** (`Content-Type: application/json`)
 
 ```json
 {
   "id": "0b9f1c7e-...",
   "playedAt": "2026-10-24T09:00:00.000Z",
+  "nickname": "Kim Lee",
   "total": 187,
   "upperSum": 72,
   "bonus": 35,
@@ -48,20 +58,24 @@ browser (CORS), like the status app.
 |---|---|
 | `201` | Saved |
 | `200` | This `id` was saved before; nothing changed |
-| `400` | The record is not a real game (see below), or is not valid JSON |
-| `413` | The body is larger than a few kilobytes |
-| `429` | Too many requests from this address |
+| `400` | Not valid JSON, a bad `id`, `playedAt` or `nickname`, or not a real game (see below). The body says which |
+| `413` | The body is larger than 16 KB |
+| `415` | The body is not `application/json` |
+| `429` | More than 10 saves from this address in an hour (`Retry-After` says how many seconds to wait) |
+| `503` | The database cannot be reached |
 
 **Top scores: `GET /scores/api/yacht/top?limit=10`** and **recent games: `GET /scores/api/yacht/recent?limit=10`**
 
-Answer `200` with a list, without the turns: `[{ "id", "playedAt", "total", "upperSum", "bonus" }, ...]`.
-`limit` is a whole number from 1 to 100; anything else is treated as 10.
+Answer `200` with a list, without the turns: `[{ "id", "playedAt", "total", "upperSum", "bonus", "nickname" }, ...]`.
+`limit` is a whole number from 1 to 100; anything else is treated as 10. A list is kept for 5 seconds, and a new game
+clears it at once.
 
-## What the server must check before it saves
+## What the server checks before it saves
 
 A browser can send anything, so a score is never trusted as a number. The server works the score out again from
-the turns. The same rules are written in `verifyRecord()` in `src/tools/yacht/controller.ts` (with tests); the Java
-code has to follow them:
+the turns. The same rules are written in `verifyRecord()` in `src/tools/yacht/controller.ts` and in `YachtRules.java`,
+and `fixtures/records.json` (made by the site's code) has about 80 games, good and tampered, that both must judge the
+same way:
 
 1. Exactly 12 turns, and each of the 12 categories appears exactly once
    (`aces deuces threes fours fives sixes choice fourOfAKind fullHouse smallStraight largeStraight yacht`).
@@ -69,43 +83,47 @@ code has to follow them:
 3. The points of each turn are computed from its dice and category with the scoring rules of the game.
 4. `upperSum` is the sum of the six upper categories, `bonus` is 35 if `upperSum >= 63` and 0 otherwise, and
    `total` is the sum of all 12 turns plus `bonus`. If any of the three differs from what was sent, answer `400`.
-5. `id` is 1 to 64 characters from `A-Za-z0-9-`; `playedAt` is an ISO date and time that is not in the future.
+5. `id` is 1 to 64 characters from `A-Za-z0-9-`; `playedAt` is an ISO date and time, not more than a few minutes in
+   the future and not older than a week.
+6. `nickname` follows `src/tools/yacht/nickname.ts` (checked with `fixtures/nicknames.json`): 1 to 12 letters, digits,
+   `_`, `-` and single spaces between words. It is stored as the server tidied it, and shown by the site as plain text.
 
-What the server cannot check is whether the dice were really random: someone can send a perfect, valid game. If the
-ranking ever matters, play has to move to the server (the server rolls the dice). This design only keeps out
-impossible scores and typing mistakes.
+What the server cannot check is whether the dice were really random: someone can send a perfect, valid game. That is
+why a single address may save only 10 games an hour. If the ranking ever matters, play has to move to the server (the
+server rolls the dice). This design only keeps out impossible scores, typing mistakes and flooding.
 
-Also: limit the size of the body (a real game is about 1 KB), limit requests per address (nginx `limit_req`, as for
-`/status/`), and never put a player's text into SQL or into the page without escaping it. A player name is not part
-of the table yet; if it is added later it is text to be escaped when shown.
+Also: the body is limited to 16 KB, nginx limits requests per address, every SQL value is a bind variable, and the
+error answers never contain database messages, addresses or passwords.
 
 ## Database access: where the secrets go
 
-This repository is public. **Never commit the JDBC address, user name or password.** Keep them on the server only:
+This repository is public. **Never commit the JDBC address, user name or password.** The app reads them, when the
+first request needs the database, from a file on the server:
 
-- Preferably as a Tomcat JNDI data source in the server's own `conf/Catalina/localhost/scores.xml` (not in this
-  repository), which the app reads with `new InitialContext().lookup("java:comp/env/jdbc/yachtScores")`:
+```
+/opt/tomcat/conf/homepage-db.properties      (owner tomcat, mode 600; set another path with -Dhomepage.db.config=...)
 
-  ```xml
-  <Context>
-    <Resource name="jdbc/yachtScores" auth="Container" type="javax.sql.DataSource"
-              driverClassName="oracle.jdbc.OracleDriver"
-              url="jdbc:oracle:thin:@<HOST>:<PORT>/<SERVICE_NAME>"
-              username="<USER>" password="<PASSWORD>"
-              maxTotal="5" maxIdle="2" maxWaitMillis="5000"/>
-  </Context>
-  ```
+jdbc.url=jdbc:oracle:thin:@<the connection string of the TLS service>
+jdbc.user=HOMEPAGE_APP
+jdbc.password=<PASSWORD>
+```
 
-  (The values in angle brackets are placeholders to fill in on the server. The Oracle JDBC driver, `ojdbc*.jar`, goes
-  in Tomcat's `lib/`.)
-- Or as environment variables of the Tomcat service. An Autonomous Database also needs its wallet files on the
-  server, with their folder named in the URL (`?TNS_ADMIN=...`).
-- Use a database user that can only touch `YACHT_SCORE` (insert and select), not an administrator.
+The values in angle brackets are placeholders to fill in on the server. The app starts even if the file or the
+database is missing, answers `503` until it can connect, and then works without a restart. The connection is TLS
+without a wallet (the database allows the server's address), through a pool of 4 connections.
 
-## Still to do when the database exists
+The same file is meant for every other feature of the site that needs the database.
 
-1. Create the table with `schema.sql`.
-2. Write the Java servlet: it reads the data source, applies the checks above, and runs the statements in
-   `queries.sql` with bind variables. It is not written yet because it cannot be tried without a database.
-3. Put it behind nginx as `/scores/`, the way `/status/` is (`../nginx/shinheeyoun.conf`), with CORS only for the site.
-4. Change the one line in `YachtView.tsx`.
+## Putting it on the server
+
+Each step changes the server, so each is done by hand:
+
+1. Create the table: `schema.sql`, or `migration-001-nickname.sql` if the table already exists without `NICKNAME`.
+2. Copy `build/scores.war` to `/opt/tomcat/webapps/` (owner `tomcat`). Tomcat deploys it without a restart.
+3. Add a `/scores/` location to nginx, as for `/status/` (`../nginx/shinheeyoun.conf`): a request limit, a 16 KB body
+   limit, and `proxy_set_header X-Forwarded-For $remote_addr` (the app counts saves per that address).
+4. Try it with `curl`: a good game answers `201`, the same again `200`, a changed total `400`.
+5. Publish the site's change that adds the ranking to the game.
+
+The database password expires after about a year, and an Always Free database is stopped when it has been idle for a
+long time: if every answer is `503`, look there first.

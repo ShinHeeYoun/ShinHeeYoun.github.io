@@ -13,3 +13,11 @@ export function resolveStatusUrl(base: string, pageProtocol: string, dev: boolea
   if (pageProtocol === 'https:' && base.startsWith('http:')) return null
   return `${base}/status/api`
 }
+
+// Where the score server's /scores/api is reached from. Same rules as the status card: through the proxy while
+// developing, the server itself once published, and null when a plain-http address could not be called from https.
+export function scoresBase(base: string, pageProtocol: string, dev: boolean): string | null {
+  if (dev) return '/server-api'
+  if (pageProtocol === 'https:' && base.startsWith('http:')) return null
+  return base
+}

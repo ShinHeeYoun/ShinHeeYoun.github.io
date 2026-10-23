@@ -8,3 +8,5 @@ vite.config.d.ts
 .superpowers/
 server/status/build/
 server/status/lib/
+server/scores/build/
+server/scores/lib/

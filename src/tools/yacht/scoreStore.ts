@@ -1,16 +1,20 @@
 // Where the scores of finished games are kept. The game only knows the ScoreStore interface, so the place can change
 // without touching the game:
-// - LocalScoreStore keeps them in this browser (this is what the screen uses now);
-// - RemoteScoreStore sends them to the score server and reads the ranking back. It is NOT connected to the screen
-//   yet: it waits for the server and its database (see server/scores).
+// - LocalScoreStore keeps them in this browser (the player's own record on the screen);
+// - RemoteScoreStore sends them to the score server and reads the ranking back (the shared ranking; see server/scores).
 
 import { MAX_TOTAL, MAX_UPPER_SUM, UPPER_BONUS, verifyRecord, type ScoreRecord } from './controller'
+import { normalizeNickname } from './nickname'
 
-// A game without its turns: what the lists show.
-export type ScoreSummary = Omit<ScoreRecord, 'turns'>
+// A game without its turns: what the lists show. The nickname exists only for games kept on the score server.
+export type ScoreSummary = Omit<ScoreRecord, 'turns'> & { nickname?: string }
+
+// saved: this game is kept now. duplicate: the same game (same id) was already kept, and nothing changed.
+export type SaveResult = 'saved' | 'duplicate'
 
 export interface ScoreStore {
-  save(record: ScoreRecord): Promise<void>
+  // The nickname is for the ranking on the score server; a store that keeps scores only for the player ignores it.
+  save(record: ScoreRecord, nickname?: string): Promise<SaveResult>
   top(limit: number): Promise<ScoreSummary[]>
   recent(limit: number): Promise<ScoreSummary[]>
 }
@@ -35,12 +39,15 @@ export function parseSummaries(raw: unknown): ScoreSummary[] {
   const summaries: ScoreSummary[] = []
   for (const item of raw) {
     if (typeof item !== 'object' || item === null) continue
-    const { id, playedAt, total, upperSum, bonus } = item as Record<string, unknown>
+    const { id, playedAt, total, upperSum, bonus, nickname } = item as Record<string, unknown>
     if (typeof id !== 'string' || id === '') continue
     if (typeof playedAt !== 'string' || Number.isNaN(Date.parse(playedAt))) continue
     if (!isWhole(total, 0, MAX_TOTAL) || !isWhole(upperSum, 0, MAX_UPPER_SUM)) continue
     if (bonus !== 0 && bonus !== UPPER_BONUS) continue
-    summaries.push({ id, playedAt, total, upperSum, bonus })
+    const summary: ScoreSummary = { id, playedAt, total, upperSum, bonus }
+    // A nickname must already be in its tidy form; anything else is left out, and the game is still listed.
+    if (typeof nickname === 'string' && normalizeNickname(nickname) === nickname) summary.nickname = nickname
+    summaries.push(summary)
   }
   return summaries
 }
@@ -73,16 +80,18 @@ export class LocalScoreStore implements ScoreStore {
     }
   }
 
-  async save(record: ScoreRecord): Promise<void> {
-    if (!verifyRecord(record)) return // not a real game: not worth keeping
+  // The nickname is not kept here: it is only for the ranking on the score server.
+  async save(record: ScoreRecord, _nickname?: string): Promise<SaveResult> {
+    if (!verifyRecord(record)) return 'saved' // not a real game: not worth keeping, and nothing to tell the player
     try {
       const saved = this.read()
-      if (saved.some((entry) => entry.id === record.id)) return
+      if (saved.some((entry) => entry.id === record.id)) return 'duplicate'
       const kept = [...saved, toSummary(record)].slice(-LOCAL_MAX)
       this.storage?.setItem(LOCAL_KEY, JSON.stringify(kept))
     } catch {
       // the browser refuses to store (e.g. private browsing): the game just is not recorded
     }
+    return 'saved'
   }
 
   async top(limit: number): Promise<ScoreSummary[]> {
@@ -105,7 +114,15 @@ export function summarize(summaries: ScoreSummary[]): { games: number; best: num
   }
 }
 
-// --- On the score server (not connected to the screen yet) ---
+// --- On the score server ---
+
+// The score server said no. The status code tells the screen what to say (400: not accepted, 429: too many tries).
+export class ScoreServerError extends Error {
+  constructor(readonly status: number) {
+    super(`Score server error (${status})`)
+    this.name = 'ScoreServerError'
+  }
+}
 
 export class RemoteScoreStore implements ScoreStore {
   private readonly base: string
@@ -118,15 +135,20 @@ export class RemoteScoreStore implements ScoreStore {
   }
 
   // The whole game is sent, not just the score: the server works the score out again from the dice and the
-  // choices (verifyRecord does the same here) and refuses what does not add up.
-  async save(record: ScoreRecord): Promise<void> {
+  // choices (verifyRecord does the same here) and refuses what does not add up. The nickname is tidied the same way
+  // the server will tidy it.
+  async save(record: ScoreRecord, nickname?: string): Promise<SaveResult> {
+    const name = nickname === undefined ? null : normalizeNickname(nickname)
+    if (name === null) throw new Error('A usable nickname is needed to join the ranking')
     if (!verifyRecord(record)) throw new Error('Refusing to send a record that is not a real game')
     const response = await this.fetcher(`${this.base}/scores/api/yacht`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(record),
+      body: JSON.stringify({ ...record, nickname: name }),
     })
-    if (!response.ok) throw new Error(`Score server error (${response.status})`)
+    if (response.status === 200) return 'duplicate'
+    if (response.status === 201) return 'saved'
+    throw new ScoreServerError(response.status)
   }
 
   top(limit: number): Promise<ScoreSummary[]> {
@@ -139,7 +161,7 @@ export class RemoteScoreStore implements ScoreStore {
 
   private async list(which: 'top' | 'recent', limit: number): Promise<ScoreSummary[]> {
     const response = await this.fetcher(`${this.base}/scores/api/yacht/${which}?limit=${limit}`)
-    if (!response.ok) throw new Error(`Score server error (${response.status})`)
+    if (!response.ok) throw new ScoreServerError(response.status)
     return parseSummaries(await response.json())
   }
 }

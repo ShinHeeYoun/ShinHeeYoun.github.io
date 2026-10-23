@@ -8,6 +8,7 @@ import {
   type PointerEvent,
 } from 'react'
 import { cryptoRng } from '../../lib/random'
+import { SERVER_API_BASE, scoresBase } from '../../lib/serverApi'
 import {
   CATEGORIES,
   CATEGORY_HINT,
@@ -36,11 +37,40 @@ import {
   upperSum,
   type Category,
   type GameState,
+  type ScoreRecord,
 } from './controller'
-import { LOCAL_MAX, LocalScoreStore, summarize, type ScoreSummary } from './scoreStore'
+import { MAX_NICKNAME, normalizeNickname } from './nickname'
+import {
+  LOCAL_MAX,
+  LocalScoreStore,
+  RemoteScoreStore,
+  ScoreServerError,
+  summarize,
+  type ScoreSummary,
+} from './scoreStore'
 import { createSound } from './sound'
 
 const SOUND_KEY = 'yacht_sound'
+const NICKNAME_KEY = 'yacht_nickname'
+const RANKING_SIZE = 10
+
+type Registration = { state: 'idle' | 'sending' | 'done' | 'error'; message?: string }
+
+function readStored(key: string): string {
+  try {
+    return localStorage.getItem(key) ?? ''
+  } catch {
+    return ''
+  }
+}
+
+function registrationError(error: unknown): string {
+  if (error instanceof ScoreServerError) {
+    if (error.status === 429) return '짧은 시간에 너무 많이 등록했습니다. 잠시 후 다시 시도하세요.'
+    if (error.status === 400 || error.status === 413 || error.status === 415) return '서버가 이 기록을 받아들이지 않았습니다.'
+  }
+  return '서버에 연결하지 못했습니다. 잠시 후 다시 시도하세요.'
+}
 
 // Where the dots of each face go, in a 100 x 100 square.
 const PIPS: Record<number, [number, number][]> = {
@@ -129,6 +159,11 @@ export default function YachtView() {
   const [banner, setBanner] = useState<string | null>(null)
   const [summaries, setSummaries] = useState<ScoreSummary[]>([])
   const [result, setResult] = useState<{ total: number; newBest: boolean } | null>(null)
+  const [finishedRecord, setFinishedRecord] = useState<ScoreRecord | null>(null)
+  const [nickname, setNickname] = useState(() => readStored(NICKNAME_KEY))
+  const [registration, setRegistration] = useState<Registration>({ state: 'idle' })
+  const [ranking, setRanking] = useState<ScoreSummary[] | 'loading' | 'error'>('loading')
+  const [mine, setMine] = useState<string | null>(null)
   const [soundOn, setSoundOn] = useState(() => {
     try {
       return localStorage.getItem(SOUND_KEY) === '1'
@@ -144,9 +179,13 @@ export default function YachtView() {
   const soundOnRef = useRef(soundOn)
   const soundRef = useRef(createSound(() => soundOnRef.current))
   const summariesRef = useRef(summaries)
-  // Where the scores are kept. To keep them on the score server instead, this is the only line to change:
-  // new RemoteScoreStore('https://...') (see src/tools/yacht/scoreStore.ts and server/scores).
+  // The player's own record stays in this browser. The ranking of everyone is on the score server (server/scores);
+  // it is null when the page cannot reach it (a page served over https cannot call an http address).
   const store = useMemo(() => new LocalScoreStore(), [])
+  const remote = useMemo(() => {
+    const base = scoresBase(SERVER_API_BASE, window.location.protocol, import.meta.env.DEV)
+    return base === null ? null : new RemoteScoreStore(base)
+  }, [])
 
   soundOnRef.current = soundOn
   summariesRef.current = summaries
@@ -169,6 +208,26 @@ export default function YachtView() {
       if (rollRef.current) window.clearInterval(rollRef.current.timer)
     }
   }, [])
+
+  // The ranking is extra: if the server cannot be reached the game works as before and the ranking says so.
+  function loadRanking(isAlive: () => boolean = () => true) {
+    if (!remote) {
+      setRanking('error')
+      return
+    }
+    remote.top(RANKING_SIZE).then(
+      (list) => isAlive() && setRanking(list),
+      () => isAlive() && setRanking('error'),
+    )
+  }
+
+  useEffect(() => {
+    let alive = true
+    loadRanking(() => alive)
+    return () => {
+      alive = false
+    }
+  }, [remote])
 
   // --- Rolling: the faces change while the button is held, and the dice stop the moment it is let go ---
 
@@ -236,10 +295,31 @@ export default function YachtView() {
     const previous = summarize(summariesRef.current)
     const record = buildRecord(finished, newId(), new Date().toISOString())
     setResult({ total: record.total, newBest: previous.games > 0 && record.total > previous.best })
+    setFinishedRecord(record)
     void store
       .save(record)
       .then(() => store.recent(LOCAL_MAX))
       .then(setSummaries)
+  }
+
+  const cleanNickname = normalizeNickname(nickname)
+
+  function register() {
+    if (!remote || !finishedRecord || cleanNickname === null || registration.state === 'sending') return
+    setRegistration({ state: 'sending' })
+    try {
+      localStorage.setItem(NICKNAME_KEY, cleanNickname)
+    } catch {
+      // storage unavailable: the nickname is just not remembered
+    }
+    remote.save(finishedRecord, cleanNickname).then(
+      () => {
+        setMine(finishedRecord.id)
+        setRegistration({ state: 'done' })
+        loadRanking()
+      },
+      (error: unknown) => setRegistration({ state: 'error', message: registrationError(error) }),
+    )
   }
 
   function confirmCategory(category: Category) {
@@ -273,6 +353,8 @@ export default function YachtView() {
     setPending(null)
     setBanner(null)
     setResult(null)
+    setFinishedRecord(null)
+    setRegistration({ state: 'idle' })
   }
 
   function toggleSound() {
@@ -487,6 +569,53 @@ export default function YachtView() {
                 {result?.newBest && <span className="ml-2 font-semibold">최고 기록을 넘었습니다.</span>}
               </p>
               <p className="mt-1 text-xs text-muted">이번 기록은 이 브라우저에 저장되었습니다.</p>
+              {remote && finishedRecord && (
+                <form
+                  className="mt-4 border-t border-border pt-3"
+                  onSubmit={(event) => {
+                    event.preventDefault()
+                    register()
+                  }}
+                >
+                  {registration.state === 'done' ? (
+                    <p className="text-sm font-semibold">순위에 등록했습니다: {cleanNickname}</p>
+                  ) : (
+                    <>
+                      <label htmlFor="yacht-nickname" className="block text-sm font-semibold">
+                        전체 순위에 등록하기
+                      </label>
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <input
+                          id="yacht-nickname"
+                          type="text"
+                          value={nickname}
+                          maxLength={MAX_NICKNAME * 2}
+                          autoComplete="off"
+                          placeholder="닉네임"
+                          onChange={(event) => setNickname(event.target.value)}
+                          aria-describedby="yacht-nickname-help"
+                          className="w-40 rounded-md border border-border bg-background px-3 py-2 text-sm focus:border-accent focus:outline-none"
+                        />
+                        <button
+                          type="submit"
+                          disabled={cleanNickname === null || registration.state === 'sending'}
+                          className="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-background transition-colors hover:bg-accent-hover disabled:opacity-50"
+                        >
+                          {registration.state === 'sending' ? '등록 중...' : '순위 등록'}
+                        </button>
+                      </div>
+                      <p id="yacht-nickname-help" className="mt-1 text-xs text-muted">
+                        글자(한글 포함), 숫자, _ 와 -, 단어 사이 공백만 쓸 수 있고 1~{MAX_NICKNAME}자입니다.
+                      </p>
+                      {registration.state === 'error' && (
+                        <p role="alert" className="mt-2 text-sm text-red-500">
+                          {registration.message}
+                        </p>
+                      )}
+                    </>
+                  )}
+                </form>
+              )}
               <button
                 type="button"
                 onClick={newGame}
@@ -517,6 +646,42 @@ export default function YachtView() {
           </p>
         </section>
       </div>
+
+      <section className="mt-10 border-t border-border pt-6" aria-label="전체 순위">
+        <h2 className="text-lg font-semibold">전체 순위 TOP {RANKING_SIZE}</h2>
+        <p className="mt-1 text-xs text-muted">
+          게임이 끝난 뒤 닉네임으로 등록한 기록입니다. 서버가 주사위와 선택을 다시 계산해 맞는 기록만 받습니다.
+        </p>
+        {ranking === 'loading' ? (
+          <p className="mt-3 text-sm text-muted">불러오는 중...</p>
+        ) : ranking === 'error' ? (
+          <p className="mt-3 text-sm text-muted">순위를 불러오지 못했습니다. 게임은 그대로 할 수 있고, 내 기록은 이 브라우저에 저장됩니다.</p>
+        ) : ranking.length === 0 ? (
+          <p className="mt-3 text-sm text-muted">아직 등록된 기록이 없습니다. 첫 번째가 되어 보세요.</p>
+        ) : (
+          <table className="mt-4 w-full max-w-md border-collapse text-sm">
+            <caption className="sr-only">전체 순위</caption>
+            <thead>
+              <tr className="border-b border-border text-left text-xs text-muted">
+                <th className="py-1 pr-3 font-normal">순위</th>
+                <th className="py-1 pr-3 font-normal">닉네임</th>
+                <th className="py-1 pr-3 text-right font-normal">점수</th>
+                <th className="py-1 text-right font-normal">날짜</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ranking.map((entry, i) => (
+                <tr key={entry.id} className={`border-b border-border/60 ${entry.id === mine ? 'font-semibold text-accent' : ''}`}>
+                  <td className="py-1 pr-3 font-mono">{i + 1}</td>
+                  <td className="py-1 pr-3">{entry.nickname ?? '-'}</td>
+                  <td className="py-1 pr-3 text-right font-mono">{entry.total}</td>
+                  <td className="py-1 text-right font-mono">{formatDate(entry.playedAt)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
 
       <section className="mt-10 border-t border-border pt-6">
         <h2 className="text-lg font-semibold">내 기록</h2>

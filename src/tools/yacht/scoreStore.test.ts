@@ -4,6 +4,7 @@ import {
   LOCAL_MAX,
   LocalScoreStore,
   RemoteScoreStore,
+  ScoreServerError,
   parseSummaries,
   summarize,
   toSummary,
@@ -86,6 +87,23 @@ describe('parseSummaries', () => {
     expect(parsed).toEqual([good])
   })
 
+  it('keeps a valid nickname, and leaves a bad one out without dropping the game', () => {
+    const parsed = parseSummaries([
+      { ...good, id: 'a', nickname: 'Kim Lee' },
+      { ...good, id: 'b', nickname: '<b>x</b>' },
+      { ...good, id: 'c', nickname: 42 },
+      { ...good, id: 'd', nickname: '  padded  ' },
+      { ...good, id: 'e' },
+    ])
+    expect(parsed.map((entry) => [entry.id, entry.nickname])).toEqual([
+      ['a', 'Kim Lee'],
+      ['b', undefined],
+      ['c', undefined],
+      ['d', undefined],
+      ['e', undefined],
+    ])
+  })
+
   it('gives an empty list for something that is not a list', () => {
     expect(parseSummaries(null)).toEqual([])
     expect(parseSummaries({})).toEqual([])
@@ -135,12 +153,18 @@ describe('LocalScoreStore', () => {
     expect(await store.recent(0)).toEqual([])
   })
 
-  it('does not save the same game twice', async () => {
+  it('does not save the same game twice, and says so', async () => {
     const store = new LocalScoreStore(memoryStorage())
     const game = record(13)
-    await store.save(game)
-    await store.save(game)
+    expect(await store.save(game)).toBe('saved')
+    expect(await store.save(game)).toBe('duplicate')
     expect(await store.recent(10)).toHaveLength(1)
+  })
+
+  it('does not keep a nickname: it is only for the ranking on the server', async () => {
+    const store = new LocalScoreStore(memoryStorage())
+    await store.save(record(19), 'Kim')
+    expect((await store.recent(1))[0]).not.toHaveProperty('nickname')
   })
 
   it('refuses a record that is not a real game, without failing', async () => {
@@ -185,10 +209,10 @@ describe('LocalScoreStore', () => {
       },
     }
     const store = new LocalScoreStore(refusing)
-    await expect(store.save(record(17))).resolves.toBeUndefined()
+    await expect(store.save(record(17))).resolves.toBe('saved')
     expect(await store.recent(10)).toEqual([])
     const none = new LocalScoreStore(null)
-    await expect(none.save(record(18))).resolves.toBeUndefined()
+    await expect(none.save(record(18))).resolves.toBe('saved')
     expect(await none.top(5)).toEqual([])
   })
 })
@@ -214,30 +238,55 @@ describe('RemoteScoreStore', () => {
   const reply = (status: number, body: unknown = {}) =>
     vi.fn(async () => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } }))
 
-  it('sends a finished game to the server as JSON, turns included, so the server can check it', async () => {
+  it('sends a finished game to the server as JSON, turns and nickname included, so the server can check it', async () => {
     const fetcher = reply(201)
     const game = record(40)
-    await new RemoteScoreStore(BASE, fetcher).save(game)
+    await new RemoteScoreStore(BASE, fetcher).save(game, 'Kim')
     const [url, init] = fetcher.mock.calls[0] as unknown as [string, RequestInit]
     expect(url).toBe(`${BASE}/scores/api/yacht`)
     expect(init.method).toBe('POST')
     expect((init.headers as Record<string, string>)['Content-Type']).toBe('application/json')
-    expect(JSON.parse(init.body as string)).toEqual(game)
+    expect(JSON.parse(init.body as string)).toEqual({ ...game, nickname: 'Kim' })
   })
 
-  it('fails when the server does not accept the score', async () => {
-    await expect(new RemoteScoreStore(BASE, reply(400)).save(record(41))).rejects.toThrow(/400/)
-    await expect(new RemoteScoreStore(BASE, reply(500)).save(record(42))).rejects.toThrow(/500/)
+  it('says whether the game was newly saved (201) or had been saved before (200)', async () => {
+    expect(await new RemoteScoreStore(BASE, reply(201)).save(record(45), 'Kim')).toBe('saved')
+    expect(await new RemoteScoreStore(BASE, reply(200)).save(record(46), 'Kim')).toBe('duplicate')
+  })
+
+  it('sends the nickname with its spaces tidied', async () => {
+    const fetcher = reply(201)
+    await new RemoteScoreStore(BASE, fetcher).save(record(47), '  Kim    Lee ')
+    const [, init] = fetcher.mock.calls[0] as unknown as [string, RequestInit]
+    expect(JSON.parse(init.body as string).nickname).toBe('Kim Lee')
+  })
+
+  it('does not send a game without a usable nickname', async () => {
+    const fetcher = reply(201)
+    const store = new RemoteScoreStore(BASE, fetcher)
+    await expect(store.save(record(48))).rejects.toThrow(/nickname/i)
+    await expect(store.save(record(48), '')).rejects.toThrow(/nickname/i)
+    await expect(store.save(record(48), '<b>x</b>')).rejects.toThrow(/nickname/i)
+    await expect(store.save(record(48), 'abcdefghijklm')).rejects.toThrow(/nickname/i)
+    expect(fetcher).not.toHaveBeenCalled()
+  })
+
+  it('fails when the server does not accept the score, and keeps the status code for the screen to explain', async () => {
+    await expect(new RemoteScoreStore(BASE, reply(400)).save(record(41), 'Kim')).rejects.toThrow(/400/)
+    await expect(new RemoteScoreStore(BASE, reply(500)).save(record(42), 'Kim')).rejects.toThrow(/500/)
+    const error = await new RemoteScoreStore(BASE, reply(429)).save(record(49), 'Kim').catch((e) => e)
+    expect(error).toBeInstanceOf(ScoreServerError)
+    expect((error as ScoreServerError).status).toBe(429)
   })
 
   it('does not send a record that fails its own check', async () => {
     const fetcher = reply(201)
-    await expect(new RemoteScoreStore(BASE, fetcher).save({ ...record(43), total: 1 })).rejects.toThrow()
+    await expect(new RemoteScoreStore(BASE, fetcher).save({ ...record(43), total: 1 }, 'Kim')).rejects.toThrow()
     expect(fetcher).not.toHaveBeenCalled()
   })
 
   it('asks the server for the top scores and reads the answer carefully', async () => {
-    const good = toSummary(record(44))
+    const good = { ...toSummary(record(44)), nickname: 'Kim' }
     const fetcher = reply(200, [good, { nonsense: true }, { ...good, total: 'many' }])
     const top = await new RemoteScoreStore(BASE, fetcher).top(5)
     const [url] = fetcher.mock.calls[0] as unknown as [string]

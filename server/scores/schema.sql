@@ -1,5 +1,6 @@
 -- Table for the finished games of Yacht Dice, for Oracle Database 12c or later (IS JSON needs 12c).
--- Not connected to the site yet. See README.md in this folder.
+-- Run as the shared homepage database user (HOMEPAGE_APP). See README.md in this folder.
+-- A table made from an older copy of this file (without NICKNAME) is updated with migration-001-nickname.sql.
 --
 -- The numbers in the CHECK constraints are the limits of the game (src/tools/yacht/controller.ts):
 --   323 = the best possible total, 105 = the best possible total of the upper section, 35 = the upper bonus.
@@ -12,6 +13,7 @@ CREATE TABLE YACHT_SCORE (
     UPPER_SUM   NUMBER(3)                NOT NULL,   -- Aces to Sixes added up
     BONUS       NUMBER(2)                NOT NULL,   -- 35 when UPPER_SUM is 63 or more, else 0
     TURNS_JSON  CLOB                     NOT NULL,   -- the 12 turns: [{"dice":[..5 faces..],"category":".."}, ...]
+    NICKNAME    VARCHAR2(12 CHAR)        NOT NULL,   -- 1 to 12 letters, digits, _ - and single spaces (src/tools/yacht/nickname.ts)
     CREATED_AT  TIMESTAMP DEFAULT SYSTIMESTAMP NOT NULL,   -- when the server saved it
     CONSTRAINT PK_YACHT_SCORE PRIMARY KEY (ID),
     CONSTRAINT CK_YACHT_TOTAL CHECK (TOTAL BETWEEN 0 AND 323),

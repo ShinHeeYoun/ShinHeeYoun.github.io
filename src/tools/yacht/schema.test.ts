@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { CATEGORIES, MAX_TOTAL, MAX_UPPER_SUM, UPPER_BONUS } from './controller'
+import { MAX_NICKNAME } from './nickname'
 import schema from '../../../server/scores/schema.sql?raw'
 import readme from '../../../server/scores/README.md?raw'
 import queries from '../../../server/scores/queries.sql?raw'
@@ -14,6 +15,11 @@ describe('server/scores', () => {
 
   it('names every category of the game in the notes for the server', () => {
     for (const category of CATEGORIES) expect(readme).toContain(category)
+  })
+
+  it('has a nickname column as long as the longest nickname the site accepts', () => {
+    expect(schema).toContain(`NICKNAME    VARCHAR2(${MAX_NICKNAME} CHAR)`)
+    expect(queries).toContain(':nickname')
   })
 
   it('uses bind variables for every value in the statements', () => {

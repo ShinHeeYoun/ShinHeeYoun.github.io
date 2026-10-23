@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { formatBytes, formatMillis, formatPercent, formatRate, formatUptime, parseStatus, requestRates } from './serverStatus'
-import { SERVER_API_BASE, resolveStatusUrl } from './serverApi'
+import { SERVER_API_BASE, resolveStatusUrl, scoresBase } from './serverApi'
 
 // What the server's /status/api returns, trimmed to one history point.
 const SAMPLE = {
@@ -213,5 +213,20 @@ describe('resolveStatusUrl', () => {
 
   it('allows plain http between plain http pages', () => {
     expect(resolveStatusUrl(BASE, 'http:', false)).toBe(`${BASE}/status/api`)
+  })
+})
+
+describe('scoresBase', () => {
+  it('is the server itself once the site is published', () => {
+    expect(scoresBase(SERVER_API_BASE, 'https:', false)).toBe(SERVER_API_BASE)
+  })
+
+  it('goes through the Vite proxy during development, like the status card', () => {
+    expect(scoresBase(SERVER_API_BASE, 'http:', true)).toBe('/server-api')
+  })
+
+  it('is null when a plain-http server could not be called from an https page', () => {
+    expect(scoresBase('http://161.33.194.138:8080', 'https:', false)).toBeNull()
+    expect(scoresBase('http://161.33.194.138:8080', 'http:', false)).toBe('http://161.33.194.138:8080')
   })
 })
