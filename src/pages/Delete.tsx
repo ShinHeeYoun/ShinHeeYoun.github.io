@@ -30,7 +30,7 @@ export default function Delete() {
   const remaining = posts.filter((post) => !removed.includes(post.slug))
 
   return (
-    <main className="w-full px-6 py-12 md:px-12">
+    <main className="page-width py-12">
       <h1 className="text-2xl font-bold">Delete</h1>
       <AdminNotice />
 

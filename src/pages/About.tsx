@@ -47,7 +47,7 @@ const stack = [
 
 export default function About() {
   return (
-    <main className="w-full px-6 py-12 md:px-12">
+    <main className="page-width py-12">
       <div className="max-w-2xl">
         <h1 className="text-2xl font-bold">About</h1>
         <p className="mt-6 leading-relaxed text-foreground/90">

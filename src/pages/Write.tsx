@@ -57,7 +57,7 @@ export default function Write() {
   }
 
   return (
-    <main className="w-full px-6 py-12 md:px-12">
+    <main className="page-width py-12">
       <h1 className="text-2xl font-bold">Write</h1>
       <AdminNotice />
 

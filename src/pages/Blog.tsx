@@ -22,7 +22,7 @@ export default function Blog() {
   const shown = searching ? results : allPosts
 
   return (
-    <main className="w-full px-6 py-12 md:px-12">
+    <main className="page-width py-12">
       <h1 className="text-2xl font-bold">Blog</h1>
 
       <form role="search" className="mt-6 max-w-xl" onSubmit={(event) => event.preventDefault()}>
@@ -46,7 +46,7 @@ export default function Blog() {
         </p>
       )}
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {shown.map(({ post, title, snippet }) => (
           <Link key={post.slug} to={`/blog/${post.slug}`} className="block">
             <article className="card">

@@ -10,7 +10,7 @@ export default function PostDetail() {
 
   if (!post) {
     return (
-      <main className="w-full px-6 py-12 md:px-12">
+      <main className="page-width py-12">
         <p>글을 찾을 수 없습니다.</p>
         <Link to="/blog" className="text-accent underline">
           목록으로
@@ -23,7 +23,7 @@ export default function PostDetail() {
   const html = isHtml ? '' : renderPostHtml(post.body, post.title)
 
   return (
-    <main className="w-full px-6 py-12 md:px-12">
+    <main className="page-width py-12">
       <div className={`mx-auto ${isHtml ? 'max-w-5xl' : 'max-w-3xl'}`}>
         <Link to="/blog" className="text-sm text-accent underline">
           ← 목록으로

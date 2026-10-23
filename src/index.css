@@ -27,6 +27,12 @@
 }
 
 @layer base {
+  /* Keep room for the scrollbar on every page, so that centered content does not shift sideways when moving
+     between a long page (with a scrollbar) and a short one (without). */
+  html {
+    scrollbar-gutter: stable;
+  }
+
   h1,
   h2,
   h3 {
@@ -60,6 +66,12 @@
 
   .tag {
     @apply rounded border border-border px-2 py-0.5 font-mono text-xs text-muted;
+  }
+
+  /* The width of a page and of the top bar's content: the whole window on a small screen, and no wider than
+     max-w-6xl on a large one, centered, so lines stay readable. Change the width here and everywhere follows. */
+  .page-width {
+    @apply mx-auto w-full max-w-6xl px-6 md:px-12;
   }
 
   /* The part of a title or body that matched the blog search: red, and bold so it does not rely on color alone. */

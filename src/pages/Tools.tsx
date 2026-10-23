@@ -3,9 +3,9 @@ import { tools } from '../tools/registry'
 
 export default function Tools() {
   return (
-    <main className="w-full px-6 py-12 md:px-12">
+    <main className="page-width py-12">
       <h1 className="text-2xl font-bold">Tools</h1>
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {tools.map((tool) => (
           <Link key={tool.id} to={`/tools/${tool.id}`} className="block">
             <article className="card">

@@ -29,7 +29,7 @@ export default function NavBar() {
 
   return (
     <nav className="sticky top-0 z-50 border-b border-border bg-background font-mono text-sm">
-      <div className="flex w-full flex-wrap items-center gap-x-6 gap-y-2 px-6 py-4 md:px-12">
+      <div className="page-width flex flex-wrap items-center gap-x-6 gap-y-2 py-4">
         <Link to="/" className="mr-2 font-bold text-accent">
           ~/shinheeyoun
         </Link>

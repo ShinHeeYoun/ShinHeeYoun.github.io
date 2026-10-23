@@ -5,7 +5,7 @@ import SourceSection from '../components/SourceSection'
 
 export default function Home() {
   return (
-    <main className="w-full px-6 py-8 md:px-12">
+    <main className="page-width py-8">
       <Hero />
       <div className="mt-12 space-y-14">
         <ServerStatusSection />
