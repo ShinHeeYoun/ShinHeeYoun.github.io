@@ -2,11 +2,13 @@ import { useParams, Link } from 'react-router-dom'
 import type { ComponentType } from 'react'
 import CalculatorView from '../tools/calculator/CalculatorView'
 import DinoView from '../tools/dino/DinoView'
-import { tools, type ToolId } from '../tools/registry'
+import LadderView from '../tools/ladder/LadderView'
+import { tools, type ToolId, type ToolMeta } from '../tools/registry'
 
 const toolViews: Record<ToolId, ComponentType> = {
   calculator: CalculatorView,
   dino: DinoView,
+  ladder: LadderView,
 }
 
 export default function ToolPage() {
@@ -25,8 +27,11 @@ export default function ToolPage() {
     )
   }
 
+  // Most tools sit in a narrow column; a tool that needs room asks for the full page width.
+  const wide = (meta as ToolMeta).wide === true
+
   return (
-    <main className="mx-auto max-w-2xl px-4 py-12">
+    <main className={wide ? 'page-width py-12' : 'mx-auto max-w-2xl px-4 py-12'}>
       <Link to="/tools" className="text-sm text-accent underline">
         ← 목록으로
       </Link>

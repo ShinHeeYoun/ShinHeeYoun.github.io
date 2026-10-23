@@ -2,6 +2,7 @@ export type ToolMeta = {
   id: string
   name: string
   description: string
+  wide?: boolean // use the full page width instead of a narrow column (for tools that need room)
 }
 
 export const tools = [
@@ -14,6 +15,12 @@ export const tools = [
     id: 'dino',
     name: '공룡 점프 게임',
     description: '새는 숙여서 피하고 나무는 불덩이로 태우며 달리는 공룡 게임입니다. 입력과 게임 로직이 로그로 흐릅니다.',
+  },
+  {
+    id: 'ladder',
+    name: '사다리타기',
+    description: '열 수와 이름·결과를 정하고 시작하면 사다리가 만들어집니다. 길을 눌러 하나씩 확인하거나 전체 결과를 한 번에 볼 수 있습니다.',
+    wide: true,
   },
 ] as const satisfies readonly ToolMeta[]
 
