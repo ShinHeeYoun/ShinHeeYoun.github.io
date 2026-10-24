@@ -1,5 +1,14 @@
 import { useParams, Link } from 'react-router-dom'
 import type { ComponentType } from 'react'
+import { Button } from '@/components/ui/button'
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb'
 import CalculatorView from '../tools/calculator/CalculatorView'
 import DinoView from '../tools/dino/DinoView'
 import LadderView from '../tools/ladder/LadderView'
@@ -24,11 +33,12 @@ export default function ToolPage() {
 
   if (!View || !meta) {
     return (
-      <main className="mx-auto max-w-2xl px-4 py-12">
-        <p>도구를 찾을 수 없습니다.</p>
-        <Link to="/tools" className="text-accent underline">
-          목록으로
-        </Link>
+      <main className="page-width py-16 text-center">
+        <h1 className="text-2xl font-bold">도구를 찾을 수 없습니다</h1>
+        <p className="mt-2 text-muted-foreground">주소가 바뀌었거나 없어진 도구일 수 있어요.</p>
+        <Button asChild className="mt-6">
+          <Link to="/tools">도구 목록으로</Link>
+        </Button>
       </main>
     )
   }
@@ -37,11 +47,21 @@ export default function ToolPage() {
   const wide = (meta as ToolMeta).wide === true
 
   return (
-    <main className={wide ? 'page-width py-12' : 'mx-auto max-w-2xl px-4 py-12'}>
-      <Link to="/tools" className="text-sm text-accent underline">
-        ← 목록으로
-      </Link>
-      <h1 className="mt-4 text-2xl font-bold">{meta.name}</h1>
+    <main className={wide ? 'page-width py-10 sm:py-12' : 'mx-auto max-w-2xl px-4 py-10 sm:py-12'}>
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link to="/tools">Tools</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>{meta.name}</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+      <h1 className="mt-4 text-3xl font-bold tracking-tight">{meta.name}</h1>
       <div className="mt-6">
         <View />
       </div>

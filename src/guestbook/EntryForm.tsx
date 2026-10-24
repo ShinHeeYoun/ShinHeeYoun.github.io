@@ -1,4 +1,10 @@
 import { useId, useState, type FormEvent, type KeyboardEvent } from 'react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
 import { GuestbookError, type Entry } from './api'
 import { MAX_PASSWORD, MAX_TEXT, countChars, checkEntry } from './rules'
 import { MAX_NICKNAME } from '../tools/yacht/nickname'
@@ -30,10 +36,11 @@ type Props = {
   send: (input: { author: string; password: string; body: string }) => Promise<Entry>
   onDone: (entry: Entry) => void
   onCancel: () => void
+  className?: string
 }
 
 // Name, password and text. Submitted with the button or with Ctrl+Enter (Cmd+Enter on a Mac) in the text box.
-export default function EntryForm({ submitLabel, bodyLabel, send, onDone, onCancel }: Props) {
+export default function EntryForm({ submitLabel, bodyLabel, send, onDone, onCancel, className }: Props) {
   const ids = { author: useId(), password: useId(), body: useId() }
   const [author, setAuthor] = useState(storedAuthor)
   const [password, setPassword] = useState('')
@@ -80,19 +87,15 @@ export default function EntryForm({ submitLabel, bodyLabel, send, onDone, onCanc
     }
   }
 
-  const input =
-    'w-full rounded-md border bg-background px-3 py-2 text-sm focus:border-accent focus:outline-none'
-  const border = (field: string) => (badField === field ? 'border-red-500' : 'border-border')
+  const invalid = (field: string) => (badField === field ? 'border-destructive focus-visible:ring-destructive' : '')
   const length = countChars(body)
 
   return (
-    <form onSubmit={onSubmit} className="space-y-3 rounded-lg border border-border bg-surface p-4">
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div>
-          <label htmlFor={ids.author} className="block text-xs text-muted">
-            아이디
-          </label>
-          <input
+    <form onSubmit={onSubmit} className={cn('space-y-4', className)}>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor={ids.author}>아이디</Label>
+          <Input
             id={ids.author}
             type="text"
             value={author}
@@ -100,14 +103,12 @@ export default function EntryForm({ submitLabel, bodyLabel, send, onDone, onCanc
             maxLength={MAX_NICKNAME * 2}
             onChange={(event) => setAuthor(event.target.value)}
             aria-invalid={badField === 'author'}
-            className={`${input} ${border('author')}`}
+            className={invalid('author')}
           />
         </div>
-        <div>
-          <label htmlFor={ids.password} className="block text-xs text-muted">
-            비밀번호 (삭제할 때 필요)
-          </label>
-          <input
+        <div className="space-y-2">
+          <Label htmlFor={ids.password}>비밀번호 (삭제할 때 필요)</Label>
+          <Input
             id={ids.password}
             type="password"
             value={password}
@@ -115,51 +116,41 @@ export default function EntryForm({ submitLabel, bodyLabel, send, onDone, onCanc
             maxLength={MAX_PASSWORD * 2}
             onChange={(event) => setPassword(event.target.value)}
             aria-invalid={badField === 'password'}
-            className={`${input} ${border('password')}`}
+            className={invalid('password')}
           />
         </div>
       </div>
-      <div>
-        <label htmlFor={ids.body} className="block text-xs text-muted">
-          {bodyLabel}
-        </label>
-        <textarea
+      <div className="space-y-2">
+        <Label htmlFor={ids.body}>{bodyLabel}</Label>
+        <Textarea
           id={ids.body}
           value={body}
           rows={4}
           onChange={(event) => setBody(event.target.value)}
           onKeyDown={onKeyDown}
           aria-invalid={badField === 'body'}
-          className={`${input} ${border('body')} resize-y`}
+          className={cn('resize-y', invalid('body'))}
         />
-        <p className="mt-1 flex justify-between text-xs text-muted">
+        <p className="flex justify-between gap-3 text-xs text-muted-foreground">
           <span>Markdown을 쓸 수 있습니다. Ctrl+Enter로 등록합니다.</span>
-          <span className={length > MAX_TEXT ? 'font-semibold text-red-500' : ''}>
+          <span className={cn('tabular-nums', length > MAX_TEXT && 'font-semibold text-destructive')}>
             {length} / {MAX_TEXT}
           </span>
         </p>
       </div>
-      <p className="text-xs text-muted">등록하면 IP 주소와 작성 시간이 서버에 기록됩니다. IP 주소는 화면에 보이지 않습니다.</p>
+      <p className="text-xs text-muted-foreground">등록하면 IP 주소와 작성 시간이 서버에 기록됩니다. IP 주소는 화면에 보이지 않습니다.</p>
       {error && (
-        <p role="alert" className="text-sm text-red-500">
-          {error}
-        </p>
+        <Alert variant="destructive" role="alert">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
       <div className="flex gap-2">
-        <button
-          type="submit"
-          disabled={sending}
-          className="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-background transition-colors hover:bg-accent-hover disabled:opacity-50"
-        >
+        <Button type="submit" disabled={sending}>
           {sending ? '등록 중...' : submitLabel}
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-md border border-border bg-background px-3 py-2 text-sm transition-colors hover:border-accent"
-        >
+        </Button>
+        <Button type="button" variant="outline" onClick={onCancel}>
           취소
-        </button>
+        </Button>
       </div>
     </form>
   )

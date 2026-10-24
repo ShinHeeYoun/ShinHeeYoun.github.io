@@ -2,7 +2,7 @@
 
 **https://shinheeyoun.github.io/#/**
 
-Claude와 함께 만든 개발 연습 페이지입니다. 터미널 느낌의 포트폴리오, 블로그, 작은 도구 모음을 정적 파일만으로 만들어 GitHub Pages에 올렸습니다.
+Claude와 함께 만든 개발 연습 페이지입니다. 포트폴리오, 블로그, 작은 도구 모음을 정적 파일만으로 만들어 GitHub Pages에 올렸습니다.
 
 ## 들어 있는 것
 
@@ -12,11 +12,15 @@ Claude와 함께 만든 개발 연습 페이지입니다. 터미널 느낌의 �
 - **라이브 서버 상태**: 따로 운영하는 서버의 힙 메모리, 스레드, CPU 같은 값을 10초마다 보여주는 카드
 - **ERS**: 서버에 올린 보고서 뷰어(Crownix)를 사이트 안의 iframe으로 바로 쓰는 탭
 - **글 관리(관리자 전용)**: 작성·수정·삭제 화면과 미리보기. GitHub 토큰으로 로그인하면 브라우저에서 저장소에 직접 글을 올립니다. 글은 Markdown으로 쓰거나, HTML 파일(과 CSS 파일)을 올려서 만들 수 있고 HTML 글은 격리된 틀 안에서 보여줍니다.
-- 다크/라이트 테마
+- 다크/라이트 테마 (처음에는 기기의 설정을 따르고, 고른 뒤에는 그 선택을 기억합니다)
 
 ## 만든 방법
 
-React 18, TypeScript, Vite, Tailwind CSS, React Router(HashRouter), 테스트는 Vitest를 씁니다. 글은 `src/content/posts/` 안의 `.md` 또는 `.html` 파일이고, 서버 없이 빌드할 때 읽어 들입니다. `main` 브랜치에 push하면 GitHub Actions가 테스트, 빌드, 배포를 차례로 실행합니다.
+React 18, TypeScript, Vite, Tailwind CSS, shadcn/ui(Radix UI), React Router(HashRouter), 테스트는 Vitest를 씁니다. 글은 `src/content/posts/` 안의 `.md` 또는 `.html` 파일이고, 서버 없이 빌드할 때 읽어 들입니다. `main` 브랜치에 push하면 GitHub Actions가 테스트, 빌드, 배포를 차례로 실행합니다.
+
+## 디자인
+
+화면 부품은 [shadcn/ui](https://ui.shadcn.com/)입니다. 부품의 코드가 `src/components/ui`에 들어 있어서 필요하면 직접 고칩니다(`components.json`이 설정이고, 새 부품은 `npx shadcn@latest add 이름`으로 추가합니다). 색은 Coolors 팔레트 [000814-001d3d-003566-ffc300-ffd60a](https://coolors.co/palette/000814-001d3d-003566-ffc300-ffd60a)에서 골랐습니다. 밝은 테마는 남색(#003566), 어두운 테마는 금색(#ffc300)을 주 색으로 쓰고, 색 값은 `src/index.css`의 CSS 변수 한 곳에 있습니다. 글자와 배경의 대비(WCAG AA, 4.5:1)는 `src/lib/palette.test.ts`가 그 파일을 읽어서 확인하므로, 색을 바꿔서 읽기 어려워지면 테스트가 실패합니다. 글꼴은 npm 패키지 `pretendard`를 사이트에 포함합니다.
 
 ## 직접 실행하기
 

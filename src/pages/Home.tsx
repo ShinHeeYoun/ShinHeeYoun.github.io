@@ -1,17 +1,15 @@
-import Hero from '../components/Hero'
 import BlogPreviewSection from '../components/BlogPreviewSection'
+import Hero from '../components/Hero'
+import QuickLinks from '../components/QuickLinks'
 import ServerStatusSection from '../components/ServerStatusSection'
-import SourceSection from '../components/SourceSection'
 
 export default function Home() {
   return (
-    <main className="page-width py-8">
+    <main className="page-width space-y-14 py-8 sm:py-10">
       <Hero />
-      <div className="mt-12 space-y-14">
-        <ServerStatusSection />
-        <BlogPreviewSection />
-        <SourceSection />
-      </div>
+      <QuickLinks />
+      <BlogPreviewSection />
+      <ServerStatusSection />
     </main>
   )
 }

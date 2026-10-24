@@ -1,3 +1,7 @@
+import { CircleAlert, KeyRound, Link2, LocateFixed } from 'lucide-react'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { GOOGLE_MAPS_KEY } from './config'
@@ -33,9 +37,6 @@ function loadBest(): number {
     return 0
   }
 }
-
-const button =
-  'rounded-md border border-border bg-surface px-3 py-1.5 text-sm transition-colors hover:border-accent disabled:opacity-50'
 
 function locateError(code: number): string {
   if (code === 1) return '위치 권한이 거부되었습니다. 브라우저 설정에서 이 사이트의 위치 권한을 허용해 주세요.'
@@ -244,46 +245,43 @@ export default function MapView() {
 
   if (!GOOGLE_MAPS_KEY) {
     return (
-      <div className="rounded-lg border border-border bg-surface p-4 text-sm">
-        <p className="font-semibold">지도를 보려면 Google Maps API 키가 필요합니다.</p>
-        <p className="mt-2 text-muted">
+      <Alert>
+        <KeyRound />
+        <AlertTitle>지도를 보려면 Google Maps API 키가 필요합니다</AlertTitle>
+        <AlertDescription>
           아직 이 사이트에는 키가 설정되지 않았습니다. 키는 <code className="font-mono">src/tools/map/config.ts</code>에서 설정합니다
           (README의 &quot;Google Maps 키&quot; 참고).
-        </p>
-      </div>
+        </AlertDescription>
+      </Alert>
     )
   }
 
   return (
     <div>
-      <div className="flex flex-wrap gap-2" role="group" aria-label="지도 기능">
-        {MODES.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            aria-pressed={mode === item.id}
-            onClick={() => setMode(item.id)}
-            className={`rounded-md border px-3 py-1.5 text-sm font-semibold transition-colors ${
-              mode === item.id ? 'border-accent bg-accent text-background' : 'border-border bg-surface hover:border-accent'
-            }`}
-          >
-            {item.label}
-          </button>
-        ))}
-      </div>
+      <Tabs value={mode} onValueChange={(value) => setMode(value as Mode)}>
+        <TabsList aria-label="지도 기능">
+          {MODES.map((item) => (
+            <TabsTrigger key={item.id} value={item.id}>
+              {item.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
 
       {mode !== 'quiz' && (
         <div className="mt-3 flex flex-wrap gap-2">
-          <button type="button" onClick={locate} disabled={locating} className={button}>
+          <Button type="button" variant="outline" size="sm" className="gap-1.5" onClick={locate} disabled={locating}>
+            <LocateFixed />
             {locating ? '찾는 중...' : '내 위치'}
-          </button>
-          <button type="button" onClick={() => void copy('link')} className={button}>
+          </Button>
+          <Button type="button" variant="outline" size="sm" className="gap-1.5" onClick={() => void copy('link')}>
+            <Link2 />
             {copied === 'link' ? '복사했습니다' : '이 화면 링크 복사'}
-          </button>
+          </Button>
         </div>
       )}
       {locateMessage && mode !== 'quiz' && (
-        <p role="alert" className="mt-2 text-sm text-red-500">
+        <p role="alert" className="mt-2 text-sm text-destructive">
           {locateMessage}
         </p>
       )}
@@ -305,20 +303,24 @@ export default function MapView() {
           />
         )}
         {status === 'loading' && (
-          <div className="flex h-[65vh] min-h-[22rem] items-center justify-center rounded-lg border border-border bg-surface text-sm text-muted">
+          <div className="flex h-[65vh] min-h-[22rem] items-center justify-center rounded-xl border bg-muted text-sm text-muted-foreground">
             지도를 불러오는 중...
           </div>
         )}
         {status === 'refused' && (
-          <p role="alert" className="rounded-lg border border-border bg-surface p-4 text-sm">
-            Google이 이 API 키를 받아주지 않았습니다. 키가 맞는지, 이 사이트 주소가 키의 허용 목록에 있는지, Maps JavaScript API가 켜져
-            있는지 확인하세요.
-          </p>
+          <Alert variant="destructive" role="alert">
+            <CircleAlert />
+            <AlertDescription>
+              Google이 이 API 키를 받아주지 않았습니다. 키가 맞는지, 이 사이트 주소가 키의 허용 목록에 있는지, Maps JavaScript API가
+              켜져 있는지 확인하세요.
+            </AlertDescription>
+          </Alert>
         )}
         {status === 'error' && (
-          <p role="alert" className="rounded-lg border border-border bg-surface p-4 text-sm">
-            Google 지도를 불러오지 못했습니다. 인터넷 연결을 확인하고 새로고침해 보세요.
-          </p>
+          <Alert variant="destructive" role="alert">
+            <CircleAlert />
+            <AlertDescription>Google 지도를 불러오지 못했습니다. 인터넷 연결을 확인하고 새로고침해 보세요.</AlertDescription>
+          </Alert>
         )}
       </div>
 
@@ -349,7 +351,7 @@ export default function MapView() {
           <QuizPanel quiz={quiz} best={best} newRecord={newRecord} onStart={startQuiz} onNext={nextQuestion} onQuit={() => setQuiz(null)} />
         )}
       </div>
-      <p className="mt-3 text-xs text-muted">지도는 Google Maps를 사용합니다. 휠이나 두 손가락으로 확대·축소하고, 왼쪽 위에서 일반 지도와 위성 사진을 바꿀 수 있습니다.</p>
+      <p className="mt-3 text-xs text-muted-foreground">지도는 Google Maps를 사용합니다. 휠이나 두 손가락으로 확대·축소하고, 왼쪽 위에서 일반 지도와 위성 사진을 바꿀 수 있습니다.</p>
     </div>
   )
 }

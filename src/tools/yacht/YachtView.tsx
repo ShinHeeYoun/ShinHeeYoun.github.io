@@ -1,3 +1,12 @@
+import { RotateCcw, Trophy, Volume2, VolumeX } from 'lucide-react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   useEffect,
   useMemo,
@@ -117,7 +126,7 @@ function Die({
         disabled={!canHold}
         aria-pressed={held}
         aria-label={`주사위 ${index + 1}: ${value === 0 ? '굴리기 전' : `${value}`}${held ? ', 고정됨' : ''}`}
-        className="rounded-xl outline-none transition-transform duration-150 focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-default"
+        className="rounded-xl outline-none transition-transform duration-150 focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-default"
         style={{ transform: held ? 'translateY(-10px)' : 'none' }}
       >
         <svg
@@ -134,8 +143,8 @@ function Die({
             width="92"
             height="92"
             rx="18"
-            fill={value === 0 ? 'rgb(var(--color-surface))' : '#f5f5f4'}
-            stroke={held ? 'rgb(var(--color-accent))' : value === 0 ? 'rgb(var(--color-border))' : '#a8a29e'}
+            fill={value === 0 ? 'hsl(var(--muted))' : '#f5f5f4'}
+            stroke={held ? 'hsl(var(--primary))' : value === 0 ? 'hsl(var(--border))' : '#a8a29e'}
             strokeWidth={held ? 6 : 3}
             strokeDasharray={value === 0 ? '6 6' : undefined}
           />
@@ -144,7 +153,7 @@ function Die({
           ))}
         </svg>
       </button>
-      <span className={`mt-1 h-4 text-xs ${held ? 'text-accent' : 'text-transparent'}`} aria-hidden="true">
+      <span className={`mt-1 h-4 text-xs font-semibold ${held ? 'text-primary' : 'text-transparent'}`} aria-hidden="true">
         고정
       </span>
     </div>
@@ -441,22 +450,22 @@ export default function YachtView() {
           disabled={!available}
           aria-pressed={isPending}
           onClick={() => pickCategory(category)}
-          className={`flex w-full items-center justify-between gap-3 rounded-md border px-3 py-2 text-left transition-colors ${
+          className={`flex w-full items-center justify-between gap-3 rounded-lg border px-3 py-2 text-left transition-colors ${
             isPending
-              ? 'border-accent bg-accent/10'
+              ? 'border-primary bg-primary/10'
               : available
-                ? 'border-border hover:border-accent'
+                ? 'bg-card hover:border-primary/50 hover:bg-muted'
                 : 'border-transparent'
           } disabled:cursor-default`}
         >
           <span className="min-w-0">
             <span className={used ? 'font-semibold' : 'font-medium'}>{CATEGORY_LABEL[category]}</span>
-            <span className="block text-xs text-muted">{CATEGORY_HINT[category]}</span>
+            <span className="block text-xs text-muted-foreground">{CATEGORY_HINT[category]}</span>
           </span>
           <span
-            className={`shrink-0 font-mono text-lg ${
-              used ? 'font-semibold' : available ? 'italic text-muted' : 'text-muted'
-            } ${isPending ? '!text-accent !not-italic font-semibold' : ''}`}
+            className={`shrink-0 text-lg tabular-nums ${
+              used ? 'font-semibold' : available ? 'italic text-muted-foreground' : 'text-muted-foreground'
+            } ${isPending ? '!not-italic font-semibold !text-primary' : ''}`}
           >
             {shown === null ? '-' : shown}
           </span>
@@ -468,66 +477,63 @@ export default function YachtView() {
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="font-mono text-sm" aria-live="polite">
-          턴 {turn} / {CATEGORIES.length}
-          {!over && <span className="ml-4">남은 굴리기 {game.rollsLeft}</span>}
+        <p className="flex items-center gap-3 text-sm font-medium tabular-nums" aria-live="polite">
+          <Badge variant="secondary">
+            턴 {turn} / {CATEGORIES.length}
+          </Badge>
+          {!over && <span>남은 굴리기 {game.rollsLeft}</span>}
         </p>
         <div className="flex gap-2">
-          <button
-            type="button"
-            aria-pressed={soundOn}
-            onClick={toggleSound}
-            className="rounded-md border border-border bg-surface px-3 py-1.5 text-sm transition-colors hover:border-accent"
-          >
+          <Button type="button" variant="outline" size="sm" className="gap-1.5" aria-pressed={soundOn} onClick={toggleSound}>
+            {soundOn ? <Volume2 /> : <VolumeX />}
             소리 {soundOn ? '끄기' : '켜기'}
-          </button>
-          <button
-            type="button"
-            onClick={newGame}
-            className="rounded-md border border-border bg-surface px-3 py-1.5 text-sm transition-colors hover:border-accent"
-          >
+          </Button>
+          <Button type="button" variant="outline" size="sm" className="gap-1.5" onClick={newGame}>
+            <RotateCcw />
             새 게임
-          </button>
+          </Button>
         </div>
       </div>
 
       <div className="mt-5 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)]">
         <div>
-          <div className="rounded-lg border border-border bg-surface px-3 pb-3 pt-6">
-            <div className="flex flex-wrap justify-center gap-x-2 gap-y-2 sm:gap-x-5">
-              {Array.from({ length: DICE_COUNT }, (_, i) => (
-                <Die
-                  key={i}
-                  index={i}
-                  value={shownDice[i]}
-                  held={game.held[i]}
-                  rolling={rolling}
-                  canHold={canHold}
-                  onToggle={() => holdDie(i)}
-                />
-              ))}
-            </div>
-          </div>
+          <Card className="bg-muted/40">
+            <CardContent className="px-3 pb-3 pt-6">
+              <div className="flex flex-wrap justify-center gap-x-2 gap-y-2 sm:gap-x-5">
+                {Array.from({ length: DICE_COUNT }, (_, i) => (
+                  <Die
+                    key={i}
+                    index={i}
+                    value={shownDice[i]}
+                    held={game.held[i]}
+                    rolling={rolling}
+                    canHold={canHold}
+                    onToggle={() => holdDie(i)}
+                  />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
 
           {!over && (
             <div className="mt-4">
-              <button
+              <Button
                 type="button"
+                size="lg"
+                variant={rolling ? 'secondary' : 'default'}
                 disabled={game.rollsLeft <= 0}
                 aria-pressed={rolling}
                 {...rollPointer}
                 {...rollKeys}
-                className={`w-full touch-none select-none rounded-lg px-4 py-4 text-lg font-semibold transition-colors disabled:opacity-50 ${
-                  rolling ? 'bg-accent-hover text-background' : 'bg-accent text-background hover:bg-accent-hover'
-                }`}
+                className="h-16 w-full touch-none select-none text-lg font-semibold"
               >
                 {game.rollsLeft <= 0
                   ? '점수 칸을 선택하세요'
                   : rolling
                     ? '굴리는 중... 손을 떼면 결정됩니다'
                     : '굴리기 (누르고 있기)'}
-              </button>
-              <p className="mt-2 text-xs text-muted">
+              </Button>
+              <p className="mt-2 text-xs text-muted-foreground">
                 버튼을 누르고 있는 동안 주사위 눈이 바뀌고, 떼는 순간 결정됩니다. 단축키: Space(누르고 있기) 굴리기, 1~5 주사위
                 고정.
               </p>
@@ -535,224 +541,231 @@ export default function YachtView() {
           )}
 
           {banner && (
-            <p role="status" className="mt-3 rounded-md border border-accent bg-accent/10 px-3 py-2 text-sm font-semibold">
-              {banner}
-            </p>
+            <Alert role="status" className="mt-3 border-highlight bg-highlight/15">
+              <AlertDescription className="font-semibold text-foreground">{banner}</AlertDescription>
+            </Alert>
           )}
 
           {pending && !over && (
             <div className="mt-3 flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={() => confirmCategory(pending)}
-                className="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-background transition-colors hover:bg-accent-hover"
-              >
+              <Button type="button" onClick={() => confirmCategory(pending)}>
                 {CATEGORY_LABEL[pending]}에 {pendingPoints}점 기록
-              </button>
-              <button
-                type="button"
-                onClick={() => setPending(null)}
-                className="rounded-md border border-border bg-surface px-3 py-2 text-sm transition-colors hover:border-accent"
-              >
+              </Button>
+              <Button type="button" variant="outline" onClick={() => setPending(null)}>
                 취소
-              </button>
-              {pendingPoints === 0 && <span className="text-xs text-muted">조건에 맞지 않아 0점으로 기록됩니다.</span>}
+              </Button>
+              {pendingPoints === 0 && <span className="text-xs text-muted-foreground">조건에 맞지 않아 0점으로 기록됩니다.</span>}
             </div>
           )}
 
           {over && (
-            <div className="mt-4 rounded-lg border border-accent bg-accent/10 p-4" role="status">
-              <p className="text-sm text-muted">게임 종료</p>
-              <p className="mt-1 font-mono text-4xl font-bold">{result?.total ?? totalScore(game)}점</p>
-              <p className="mt-2 text-sm">
-                상단 합계 {upper} / {UPPER_BONUS_THRESHOLD} · 보너스 {upperBonus(upper)}
-                {result?.newBest && <span className="ml-2 font-semibold">최고 기록을 넘었습니다.</span>}
-              </p>
-              <p className="mt-1 text-xs text-muted">이번 기록은 이 브라우저에 저장되었습니다.</p>
-              {remote && finishedRecord && (
-                <form
-                  className="mt-4 border-t border-border pt-3"
-                  onSubmit={(event) => {
-                    event.preventDefault()
-                    register()
-                  }}
-                >
-                  {registration.state === 'done' ? (
-                    <p className="text-sm font-semibold">순위에 등록했습니다: {cleanNickname}</p>
-                  ) : (
-                    <>
-                      <label htmlFor="yacht-nickname" className="block text-sm font-semibold">
-                        전체 순위에 등록하기
-                      </label>
-                      <div className="mt-2 flex flex-wrap items-center gap-2">
-                        <input
-                          id="yacht-nickname"
-                          type="text"
-                          value={nickname}
-                          maxLength={MAX_NICKNAME * 2}
-                          autoComplete="off"
-                          placeholder="닉네임"
-                          onChange={(event) => setNickname(event.target.value)}
-                          aria-describedby="yacht-nickname-help"
-                          className="w-40 rounded-md border border-border bg-background px-3 py-2 text-sm focus:border-accent focus:outline-none"
-                        />
-                        <button
-                          type="submit"
-                          disabled={cleanNickname === null || registration.state === 'sending'}
-                          className="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-background transition-colors hover:bg-accent-hover disabled:opacity-50"
-                        >
-                          {registration.state === 'sending' ? '등록 중...' : '순위 등록'}
-                        </button>
-                      </div>
-                      <p id="yacht-nickname-help" className="mt-1 text-xs text-muted">
-                        글자(한글 포함), 숫자, _ 와 -, 단어 사이 공백만 쓸 수 있고 1~{MAX_NICKNAME}자입니다.
-                      </p>
-                      {registration.state === 'error' && (
-                        <p role="alert" className="mt-2 text-sm text-red-500">
-                          {registration.message}
-                        </p>
-                      )}
-                    </>
+            <Card className="mt-4 border-primary/50 bg-primary/5" role="status">
+              <CardContent className="p-5">
+                <p className="text-sm text-muted-foreground">게임 종료</p>
+                <p className="mt-1 text-5xl font-extrabold tabular-nums tracking-tight">{result?.total ?? totalScore(game)}점</p>
+                <p className="mt-2 text-sm">
+                  상단 합계 {upper} / {UPPER_BONUS_THRESHOLD} · 보너스 {upperBonus(upper)}
+                  {result?.newBest && (
+                    <Badge className="ml-2 bg-highlight text-highlight-foreground hover:bg-highlight">최고 기록을 넘었습니다</Badge>
                   )}
-                </form>
-              )}
-              <button
-                type="button"
-                onClick={newGame}
-                className="mt-3 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-background transition-colors hover:bg-accent-hover"
-              >
-                새 게임
-              </button>
-            </div>
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">이번 기록은 이 브라우저에 저장되었습니다.</p>
+                {remote && finishedRecord && (
+                  <form
+                    className="mt-4 border-t pt-4"
+                    onSubmit={(event) => {
+                      event.preventDefault()
+                      register()
+                    }}
+                  >
+                    {registration.state === 'done' ? (
+                      <p className="flex items-center gap-2 text-sm font-semibold">
+                        <Trophy className="h-4 w-4 text-primary" aria-hidden="true" />
+                        순위에 등록했습니다: {cleanNickname}
+                      </p>
+                    ) : (
+                      <>
+                        <Label htmlFor="yacht-nickname" className="text-sm font-semibold">
+                          전체 순위에 등록하기
+                        </Label>
+                        <div className="mt-2 flex flex-wrap items-center gap-2">
+                          <Input
+                            id="yacht-nickname"
+                            type="text"
+                            value={nickname}
+                            maxLength={MAX_NICKNAME * 2}
+                            autoComplete="off"
+                            placeholder="닉네임"
+                            onChange={(event) => setNickname(event.target.value)}
+                            aria-describedby="yacht-nickname-help"
+                            className="w-44"
+                          />
+                          <Button type="submit" disabled={cleanNickname === null || registration.state === 'sending'}>
+                            {registration.state === 'sending' ? '등록 중...' : '순위 등록'}
+                          </Button>
+                        </div>
+                        <p id="yacht-nickname-help" className="mt-1.5 text-xs text-muted-foreground">
+                          글자(한글 포함), 숫자, _ 와 -, 단어 사이 공백만 쓸 수 있고 1~{MAX_NICKNAME}자입니다.
+                        </p>
+                        {registration.state === 'error' && (
+                          <p role="alert" className="mt-2 text-sm text-destructive">
+                            {registration.message}
+                          </p>
+                        )}
+                      </>
+                    )}
+                  </form>
+                )}
+                <Button type="button" onClick={newGame} className="mt-4">
+                  새 게임
+                </Button>
+              </CardContent>
+            </Card>
           )}
         </div>
 
-        <section aria-label="점수판">
-          <ul className="space-y-1">{UPPER_CATEGORIES.map(scoreRow)}</ul>
-          <p className="my-2 flex items-center justify-between rounded-md bg-surface px-3 py-2 font-mono text-sm">
-            <span>
-              상단 합계 {upper} / {UPPER_BONUS_THRESHOLD}
-            </span>
-            <span className={upperBonus(upper) > 0 ? 'font-semibold text-accent' : 'text-muted'}>
-              {upperBonus(upper) > 0
-                ? `보너스 +${UPPER_BONUS}`
-                : `보너스까지 ${Math.max(0, UPPER_BONUS_THRESHOLD - upper)}점`}
-            </span>
-          </p>
-          <ul className="space-y-1">{CATEGORIES.filter((category) => !UPPER_CATEGORIES.includes(category)).map(scoreRow)}</ul>
-          <p className="mt-3 flex items-center justify-between border-t border-border px-3 pt-3 font-mono text-lg font-bold">
-            <span>합계</span>
-            <span>{totalScore(game)}</span>
-          </p>
-        </section>
+        <Card aria-label="점수판" role="region" className="self-start">
+          <CardContent className="p-3">
+            <ul className="space-y-1">{UPPER_CATEGORIES.map(scoreRow)}</ul>
+            <p className="my-2 flex items-center justify-between rounded-lg bg-muted px-3 py-2 text-sm tabular-nums">
+              <span>
+                상단 합계 {upper} / {UPPER_BONUS_THRESHOLD}
+              </span>
+              <span className={upperBonus(upper) > 0 ? 'font-semibold text-primary' : 'text-muted-foreground'}>
+                {upperBonus(upper) > 0
+                  ? `보너스 +${UPPER_BONUS}`
+                  : `보너스까지 ${Math.max(0, UPPER_BONUS_THRESHOLD - upper)}점`}
+              </span>
+            </p>
+            <ul className="space-y-1">{CATEGORIES.filter((category) => !UPPER_CATEGORIES.includes(category)).map(scoreRow)}</ul>
+            <p className="mt-3 flex items-center justify-between border-t px-3 pt-3 text-lg font-bold tabular-nums">
+              <span>합계</span>
+              <span>{totalScore(game)}</span>
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
-      <section className="mt-10 border-t border-border pt-6" aria-label="전체 순위">
-        <h2 className="text-lg font-semibold">전체 순위 TOP {RANKING_SIZE}</h2>
-        <p className="mt-1 text-xs text-muted">
-          게임이 끝난 뒤 닉네임으로 등록한 기록입니다. 서버가 주사위와 선택을 다시 계산해 맞는 기록만 받습니다.
-        </p>
-        {ranking === 'loading' ? (
-          <p className="mt-3 text-sm text-muted">불러오는 중...</p>
-        ) : ranking === 'error' ? (
-          <p className="mt-3 text-sm text-muted">순위를 불러오지 못했습니다. 게임은 그대로 할 수 있고, 내 기록은 이 브라우저에 저장됩니다.</p>
-        ) : ranking.length === 0 ? (
-          <p className="mt-3 text-sm text-muted">아직 등록된 기록이 없습니다. 첫 번째가 되어 보세요.</p>
-        ) : (
-          <table className="mt-4 w-full max-w-md border-collapse text-sm">
-            <caption className="sr-only">전체 순위</caption>
-            <thead>
-              <tr className="border-b border-border text-left text-xs text-muted">
-                <th className="py-1 pr-3 font-normal">순위</th>
-                <th className="py-1 pr-3 font-normal">닉네임</th>
-                <th className="py-1 pr-3 text-right font-normal">점수</th>
-                <th className="py-1 text-right font-normal">날짜</th>
-              </tr>
-            </thead>
-            <tbody>
-              {ranking.map((entry, i) => (
-                <tr key={entry.id} className={`border-b border-border/60 ${entry.id === mine ? 'font-semibold text-accent' : ''}`}>
-                  <td className="py-1 pr-3 font-mono">{i + 1}</td>
-                  <td className="py-1 pr-3">{entry.nickname ?? '-'}</td>
-                  <td className="py-1 pr-3 text-right font-mono">{entry.total}</td>
-                  <td className="py-1 text-right font-mono">{formatDate(entry.playedAt)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </section>
+      <Tabs defaultValue="ranking" className="mt-10">
+        <TabsList>
+          <TabsTrigger value="ranking">전체 순위</TabsTrigger>
+          <TabsTrigger value="mine">내 기록</TabsTrigger>
+          <TabsTrigger value="rules">규칙</TabsTrigger>
+        </TabsList>
 
-      <section className="mt-10 border-t border-border pt-6">
-        <h2 className="text-lg font-semibold">내 기록</h2>
-        <p className="mt-1 text-xs text-muted">이 브라우저에만 저장됩니다. 최근 {LOCAL_MAX}게임까지 남습니다.</p>
-        {stats.games === 0 ? (
-          <p className="mt-3 text-sm text-muted">아직 끝낸 게임이 없습니다.</p>
-        ) : (
-          <>
-            <dl className="mt-3 flex flex-wrap gap-x-8 gap-y-2 font-mono text-sm">
-              <div>
-                <dt className="text-xs text-muted">플레이</dt>
-                <dd>{stats.games}회</dd>
-              </div>
-              <div>
-                <dt className="text-xs text-muted">최고</dt>
-                <dd>{stats.best}점</dd>
-              </div>
-              <div>
-                <dt className="text-xs text-muted">평균</dt>
-                <dd>{stats.average}점</dd>
-              </div>
-            </dl>
-            <table className="mt-4 w-full max-w-md border-collapse text-sm">
-              <caption className="sr-only">최근 게임</caption>
-              <thead>
-                <tr className="border-b border-border text-left text-xs text-muted">
-                  <th className="py-1 pr-3 font-normal">날짜</th>
-                  <th className="py-1 pr-3 text-right font-normal">점수</th>
-                  <th className="py-1 text-right font-normal">상단 합계</th>
-                </tr>
-              </thead>
-              <tbody>
-                {summaries
-                  .slice()
-                  .sort((a, b) => Date.parse(b.playedAt) - Date.parse(a.playedAt))
-                  .slice(0, 5)
-                  .map((entry) => (
-                    <tr key={entry.id} className="border-b border-border/60">
-                      <td className="py-1 pr-3 font-mono">{formatDate(entry.playedAt)}</td>
-                      <td className="py-1 pr-3 text-right font-mono">{entry.total}</td>
-                      <td className="py-1 text-right font-mono">{entry.upperSum}</td>
-                    </tr>
+        <TabsContent value="ranking" className="mt-4">
+          <section aria-label="전체 순위">
+            <h2 className="text-lg font-semibold">전체 순위 TOP {RANKING_SIZE}</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              게임이 끝난 뒤 닉네임으로 등록한 기록입니다. 서버가 주사위와 선택을 다시 계산해 맞는 기록만 받습니다.
+            </p>
+            {ranking === 'loading' ? (
+              <p className="mt-4 text-sm text-muted-foreground">불러오는 중...</p>
+            ) : ranking === 'error' ? (
+              <p className="mt-4 text-sm text-muted-foreground">
+                순위를 불러오지 못했습니다. 게임은 그대로 할 수 있고, 내 기록은 이 브라우저에 저장됩니다.
+              </p>
+            ) : ranking.length === 0 ? (
+              <p className="mt-4 text-sm text-muted-foreground">아직 등록된 기록이 없습니다. 첫 번째가 되어 보세요.</p>
+            ) : (
+              <Table className="mt-4 max-w-lg">
+                <caption className="sr-only">전체 순위</caption>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>순위</TableHead>
+                    <TableHead>닉네임</TableHead>
+                    <TableHead className="text-right">점수</TableHead>
+                    <TableHead className="text-right">날짜</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {ranking.map((entry, i) => (
+                    <TableRow key={entry.id} className={entry.id === mine ? 'bg-primary/10 font-semibold text-primary hover:bg-primary/10' : ''}>
+                      <TableCell className="tabular-nums">{i + 1}</TableCell>
+                      <TableCell>{entry.nickname ?? '-'}</TableCell>
+                      <TableCell className="text-right tabular-nums">{entry.total}</TableCell>
+                      <TableCell className="text-right tabular-nums">{formatDate(entry.playedAt)}</TableCell>
+                    </TableRow>
                   ))}
-              </tbody>
-            </table>
-          </>
-        )}
-      </section>
+                </TableBody>
+              </Table>
+            )}
+          </section>
+        </TabsContent>
 
-      <section className="mt-10 border-t border-border pt-6">
-        <h2 className="text-lg font-semibold">규칙</h2>
-        <ul className="mt-3 list-inside list-disc space-y-1 text-sm leading-relaxed">
-          <li>주사위 5개를 한 턴에 최대 {MAX_ROLLS}번 굴린다.</li>
-          <li>굴린 뒤 남길 주사위를 눌러 고정하고, 나머지만 다시 굴릴 수 있다.</li>
-          <li>한 턴이 끝나면 점수판의 칸 하나를 골라 점수를 기록한다. 각 칸은 한 번만 쓸 수 있다.</li>
-          <li>조건에 맞지 않는 칸에도 기록할 수 있으며, 이때는 0점이다.</li>
-          <li>12개 칸을 모두 채우면 게임이 끝나고, 점수의 합계가 최종 점수이다.</li>
-        </ul>
-        <h3 className="mt-5 text-sm font-semibold">점수 계산</h3>
-        <ul className="mt-2 list-inside list-disc space-y-1 text-sm leading-relaxed">
-          <li>Aces, Deuces, Threes, Fours, Fives, Sixes: 해당 눈이 나온 주사위 눈의 합</li>
-          <li>상단 보너스: 위 여섯 칸의 합이 63점 이상이면 35점을 더한다.</li>
-          <li>Choice: 주사위 5개 눈의 합</li>
-          <li>4 of a Kind: 같은 눈이 4개 이상이면 주사위 5개 눈의 합</li>
-          <li>Full House: 같은 눈 3개와 다른 눈 2개이면 주사위 5개 눈의 합. 5개가 모두 같으면 해당하지 않는다.</li>
-          <li>Small Straight: 4개가 연속이면 15점</li>
-          <li>Large Straight: 5개가 연속이면 30점</li>
-          <li>Yacht: 5개가 모두 같으면 50점</li>
-          <li>최고 점수는 323점이다.</li>
-        </ul>
-      </section>
+        <TabsContent value="mine" className="mt-4">
+          <section>
+            <h2 className="text-lg font-semibold">내 기록</h2>
+            <p className="mt-1 text-sm text-muted-foreground">이 브라우저에만 저장됩니다. 최근 {LOCAL_MAX}게임까지 남습니다.</p>
+            {stats.games === 0 ? (
+              <p className="mt-4 text-sm text-muted-foreground">아직 끝낸 게임이 없습니다.</p>
+            ) : (
+              <>
+                <dl className="mt-4 grid max-w-md grid-cols-3 gap-3">
+                  {[
+                    ['플레이', `${stats.games}회`],
+                    ['최고', `${stats.best}점`],
+                    ['평균', `${stats.average}점`],
+                  ].map(([label, value]) => (
+                    <div key={label} className="rounded-lg border bg-card p-3">
+                      <dt className="text-xs text-muted-foreground">{label}</dt>
+                      <dd className="text-lg font-semibold tabular-nums">{value}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <Table className="mt-4 max-w-lg">
+                  <caption className="sr-only">최근 게임</caption>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>날짜</TableHead>
+                      <TableHead className="text-right">점수</TableHead>
+                      <TableHead className="text-right">상단 합계</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {summaries
+                      .slice()
+                      .sort((a, b) => Date.parse(b.playedAt) - Date.parse(a.playedAt))
+                      .slice(0, 5)
+                      .map((entry) => (
+                        <TableRow key={entry.id}>
+                          <TableCell className="tabular-nums">{formatDate(entry.playedAt)}</TableCell>
+                          <TableCell className="text-right tabular-nums">{entry.total}</TableCell>
+                          <TableCell className="text-right tabular-nums">{entry.upperSum}</TableCell>
+                        </TableRow>
+                      ))}
+                  </TableBody>
+                </Table>
+              </>
+            )}
+          </section>
+        </TabsContent>
+
+        <TabsContent value="rules" className="mt-4">
+          <section>
+            <h2 className="text-lg font-semibold">규칙</h2>
+            <ul className="mt-3 list-inside list-disc space-y-1 text-sm leading-relaxed">
+              <li>주사위 5개를 한 턴에 최대 {MAX_ROLLS}번 굴린다.</li>
+              <li>굴린 뒤 남길 주사위를 눌러 고정하고, 나머지만 다시 굴릴 수 있다.</li>
+              <li>한 턴이 끝나면 점수판의 칸 하나를 골라 점수를 기록한다. 각 칸은 한 번만 쓸 수 있다.</li>
+              <li>조건에 맞지 않는 칸에도 기록할 수 있으며, 이때는 0점이다.</li>
+              <li>12개 칸을 모두 채우면 게임이 끝나고, 점수의 합계가 최종 점수이다.</li>
+            </ul>
+            <h3 className="mt-5 text-sm font-semibold">점수 계산</h3>
+            <ul className="mt-2 list-inside list-disc space-y-1 text-sm leading-relaxed">
+              <li>Aces, Deuces, Threes, Fours, Fives, Sixes: 해당 눈이 나온 주사위 눈의 합</li>
+              <li>상단 보너스: 위 여섯 칸의 합이 63점 이상이면 35점을 더한다.</li>
+              <li>Choice: 주사위 5개 눈의 합</li>
+              <li>4 of a Kind: 같은 눈이 4개 이상이면 주사위 5개 눈의 합</li>
+              <li>Full House: 같은 눈 3개와 다른 눈 2개이면 주사위 5개 눈의 합. 5개가 모두 같으면 해당하지 않는다.</li>
+              <li>Small Straight: 4개가 연속이면 15점</li>
+              <li>Large Straight: 5개가 연속이면 30점</li>
+              <li>Yacht: 5개가 모두 같으면 50점</li>
+              <li>최고 점수는 323점이다.</li>
+            </ul>
+          </section>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

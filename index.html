@@ -9,14 +9,13 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <script>
       (function () {
-        // Keep in sync with resolveInitialTheme() in src/lib/theme.ts (default is dark unless 'light' is stored).
+        // Keep in sync with resolveInitialTheme() in src/lib/theme.ts: the stored choice, or else the device's.
+        var dark = false
         try {
-          if (localStorage.getItem('theme') !== 'light') {
-            document.documentElement.classList.add('dark')
-          }
-        } catch (e) {
-          document.documentElement.classList.add('dark')
-        }
+          var stored = localStorage.getItem('theme')
+          dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches
+        } catch (e) {}
+        if (dark) document.documentElement.classList.add('dark')
       })()
     </script>
   </head>

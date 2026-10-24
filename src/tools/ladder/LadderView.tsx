@@ -1,3 +1,7 @@
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { useEffect, useMemo, useState } from 'react'
 import {
   HIGHLIGHT_COLOR,
@@ -29,7 +33,7 @@ const STORAGE_KEY = 'ladder_draft'
 const COLUMN_MIN_WIDTH = 76 // px: narrower than this, the ladder scrolls sideways instead of squeezing
 const ROW_HEIGHT = 18 // px per level of the ladder
 const ANIMATION_MS = 900
-const NEUTRAL_LINE = 'rgb(var(--color-muted) / 0.55)'
+const NEUTRAL_LINE = 'hsl(var(--muted-foreground) / 0.55)'
 
 const DENSITY_LABELS: Record<Density, string> = { low: '적게', normal: '보통', high: '많이' }
 
@@ -51,9 +55,9 @@ function toPolyline(points: PathPoint[]): string {
   return points.map((point) => `${point.column + 0.5},${point.level}`).join(' ')
 }
 
-const buttonClass =
-  'rounded-md border border-border bg-surface px-3 py-1.5 text-sm transition-colors hover:border-accent disabled:opacity-50'
-const boxClass = 'w-full min-w-0 rounded-md border px-2 py-1.5 text-center text-sm'
+// A box of the ladder (a name above, a result below): typed into before the start, pressed after it.
+const boxClass = 'w-full min-w-0 rounded-md border px-2 py-1.5 text-center text-sm transition-colors'
+const typedBox = 'bg-background shadow-sm outline-none focus-visible:ring-1 focus-visible:ring-ring'
 
 export default function LadderView() {
   const [draft, setDraft] = useState<Draft>(loadDraft)
@@ -164,18 +168,18 @@ export default function LadderView() {
 
   return (
     <div>
-      <p className="text-sm text-muted">
+      <p className="text-sm text-muted-foreground">
         열 수를 정하고 위(이름)와 아래(결과)를 적은 뒤 시작을 누르세요. 시작하기 전에는 사다리의 가로줄이 만들어지지
         않습니다.
       </p>
 
       {!playing && (
         <div className="mt-4 flex flex-wrap items-end gap-x-5 gap-y-3">
-          <div>
-            <label htmlFor="ladder-count" className="block text-sm font-medium">
+          <div className="space-y-1.5">
+            <Label htmlFor="ladder-count">
               열 수 ({MIN_COLUMNS}~{MAX_COLUMNS})
-            </label>
-            <input
+            </Label>
+            <Input
               id="ladder-count"
               type="number"
               inputMode="numeric"
@@ -189,18 +193,16 @@ export default function LadderView() {
                 setDraft(resizeDraft(draft, settled))
                 setCountText(String(settled))
               }}
-              className="mt-1 w-24 rounded-md border border-border bg-surface px-2 py-1.5 text-sm outline-none focus:border-accent"
+              className="w-24"
             />
           </div>
-          <div>
-            <label htmlFor="ladder-density" className="block text-sm font-medium">
-              가로줄
-            </label>
+          <div className="space-y-1.5">
+            <Label htmlFor="ladder-density">가로줄</Label>
             <select
               id="ladder-density"
               value={density}
               onChange={(event) => setDensity(event.target.value as Density)}
-              className="mt-1 rounded-md border border-border bg-surface px-2 py-1.5 text-sm"
+              className="flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             >
               {(Object.keys(DENSITY_LABELS) as Density[]).map((key) => (
                 <option key={key} value={key}>
@@ -210,19 +212,15 @@ export default function LadderView() {
             </select>
           </div>
           <div className="flex flex-wrap gap-2">
-            <button type="button" className={buttonClass} onClick={() => setDraft(shuffleSide(draft, 'top', cryptoRng()))}>
+            <Button type="button" variant="outline" onClick={() => setDraft(shuffleSide(draft, 'top', cryptoRng()))}>
               이름 섞기
-            </button>
-            <button type="button" className={buttonClass} onClick={() => setDraft(shuffleSide(draft, 'bottom', cryptoRng()))}>
+            </Button>
+            <Button type="button" variant="outline" onClick={() => setDraft(shuffleSide(draft, 'bottom', cryptoRng()))}>
               결과 섞기
-            </button>
-            <button
-              type="button"
-              onClick={start}
-              className="rounded-md bg-accent px-5 py-1.5 text-sm font-semibold text-background transition-colors hover:bg-accent-hover"
-            >
+            </Button>
+            <Button type="button" onClick={start}>
               시작
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -230,25 +228,25 @@ export default function LadderView() {
       {playing && (
         <div className="mt-4 flex flex-wrap gap-2">
           {showAll ? (
-            <button type="button" className={buttonClass} onClick={hideAll}>
+            <Button type="button" variant="outline" size="sm" onClick={hideAll}>
               결과 숨기기
-            </button>
+            </Button>
           ) : (
-            <button type="button" className={buttonClass} onClick={() => setShowAll(true)}>
+            <Button type="button" variant="outline" size="sm" onClick={() => setShowAll(true)}>
               전체 결과 보기
-            </button>
+            </Button>
           )}
           {showAll && (
-            <button type="button" className={buttonClass} onClick={copyResults}>
+            <Button type="button" variant="outline" size="sm" onClick={copyResults}>
               {copied ? '복사됨' : '결과 복사'}
-            </button>
+            </Button>
           )}
-          <button type="button" className={buttonClass} onClick={start}>
+          <Button type="button" variant="outline" size="sm" onClick={start}>
             다시 섞기
-          </button>
-          <button type="button" className={buttonClass} onClick={backToEdit}>
+          </Button>
+          <Button type="button" variant="outline" size="sm" onClick={backToEdit}>
             처음으로
-          </button>
+          </Button>
         </div>
       )}
 
@@ -265,7 +263,7 @@ export default function LadderView() {
                       type="button"
                       aria-pressed={isPicked}
                       onClick={() => pick({ start: i, from: 'top' })}
-                      className={`${boxClass} truncate`}
+                      className={`${boxClass} truncate bg-card hover:bg-muted`}
                       style={
                         isPicked
                           ? { borderColor: HIGHLIGHT_COLOR, backgroundColor: tint(HIGHLIGHT_COLOR, 0.2) }
@@ -274,7 +272,7 @@ export default function LadderView() {
                                 borderColor: colors[endColumn(rungs, i)],
                                 backgroundColor: tint(colors[endColumn(rungs, i)], 0.15),
                               }
-                            : { borderColor: 'rgb(var(--color-border))' }
+                            : { borderColor: 'hsl(var(--border))' }
                       }
                     >
                       {isShown(i) && '✓ '}
@@ -288,7 +286,7 @@ export default function LadderView() {
                       placeholder={`${i + 1}번`}
                       aria-label={`${i + 1}번째 열 위 텍스트`}
                       onChange={(event) => setDraft(setText(draft, 'top', i, event.target.value))}
-                      className={`${boxClass} border-border bg-surface outline-none focus:border-accent`}
+                      className={`${boxClass} border-input ${typedBox}`}
                     />
                   )}
                 </div>
@@ -366,7 +364,7 @@ export default function LadderView() {
               )}
             </svg>
             {!playing && (
-              <p className="pointer-events-none absolute inset-0 flex items-center justify-center text-center text-sm text-muted">
+              <p className="pointer-events-none absolute inset-0 flex items-center justify-center text-center text-sm text-muted-foreground">
                 <span className="rounded bg-background/80 px-3 py-1">시작하면 사다리가 나타납니다</span>
               </p>
             )}
@@ -383,7 +381,7 @@ export default function LadderView() {
                       type="button"
                       aria-pressed={isEnd}
                       onClick={() => pick({ start: startColumn(rungs, j), from: 'bottom' })}
-                      className={`${boxClass} truncate`}
+                      className={`${boxClass} truncate bg-card hover:bg-muted`}
                       style={
                         isEnd
                           ? { borderColor: HIGHLIGHT_COLOR, backgroundColor: tint(HIGHLIGHT_COLOR, 0.2) }
@@ -400,8 +398,8 @@ export default function LadderView() {
                       placeholder="결과"
                       aria-label={`${j + 1}번째 열 아래 텍스트`}
                       onChange={(event) => setDraft(setText(draft, 'bottom', j, event.target.value))}
-                      className={`${boxClass} bg-surface outline-none focus:border-accent`}
-                      style={{ borderColor: draft.bottoms[j].trim() ? colors[j] : 'rgb(var(--color-border))' }}
+                      className={`${boxClass} ${typedBox}`}
+                      style={{ borderColor: draft.bottoms[j].trim() ? colors[j] : 'hsl(var(--border))' }}
                     />
                   )}
                 </div>
@@ -413,35 +411,35 @@ export default function LadderView() {
 
       {playing && rungs && (
         <div className="mt-4">
-          <p role="status" className="min-h-6 font-mono text-sm">
+          <p role="status" className="min-h-6 text-sm">
             {selected && picked ? (
               <>
                 <span style={{ color: HIGHLIGHT_COLOR }}>●</span> {topLabel(draft.tops[selected.start], selected.start)} →{' '}
                 <strong>{bottomLabel(draft.bottoms[picked.end])}</strong>
               </>
             ) : (
-              <span className="text-muted">위 또는 아래 상자를 눌러 연결된 길을 확인하세요.</span>
+              <span className="text-muted-foreground">위 또는 아래 상자를 눌러 연결된 길을 확인하세요.</span>
             )}
           </p>
-          <p className="mt-1 text-xs text-muted">
+          <p className="mt-1 text-xs text-muted-foreground">
             확인한 열 {showAll ? count : revealed.length} / {count}
           </p>
 
-          <table className="mt-3 w-full max-w-md border-collapse text-sm">
+          <Table className="mt-3 max-w-md">
             <caption className="sr-only">이름별 결과</caption>
-            <thead>
-              <tr className="border-b border-border text-left text-xs text-muted">
-                <th className="py-1 pr-3 font-normal">이름</th>
-                <th className="py-1 font-normal">결과</th>
-              </tr>
-            </thead>
-            <tbody>
+            <TableHeader>
+              <TableRow>
+                <TableHead>이름</TableHead>
+                <TableHead>결과</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {Array.from({ length: count }, (_, i) => {
                 const end = endColumn(rungs, i)
                 return (
-                  <tr key={i} className="border-b border-border/60">
-                    <td className="py-1 pr-3">{topLabel(draft.tops[i], i)}</td>
-                    <td className="py-1">
+                  <TableRow key={i}>
+                    <TableCell>{topLabel(draft.tops[i], i)}</TableCell>
+                    <TableCell>
                       {isShown(i) ? (
                         <span className="inline-flex items-center gap-2">
                           <span
@@ -452,14 +450,14 @@ export default function LadderView() {
                           {bottomLabel(draft.bottoms[end])}
                         </span>
                       ) : (
-                        <span className="text-muted">?</span>
+                        <span className="text-muted-foreground">?</span>
                       )}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 )
               })}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       )}
     </div>

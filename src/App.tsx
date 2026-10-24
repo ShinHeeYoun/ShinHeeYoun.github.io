@@ -1,4 +1,5 @@
 import { Routes, Route } from 'react-router-dom'
+import Footer from './components/Footer'
 import NavBar from './components/NavBar'
 import { AdminProvider } from './components/AdminContext'
 import RequireAdmin from './components/RequireAdmin'
@@ -17,7 +18,9 @@ import Guestbook from './pages/Guestbook'
 export default function App() {
   return (
     <AdminProvider>
+      <div className="flex min-h-screen flex-col">
       <NavBar />
+      <div className="flex-1">
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/blog" element={<Blog />} />
@@ -52,6 +55,9 @@ export default function App() {
         <Route path="/guestbook" element={<Guestbook />} />
         <Route path="/about" element={<About />} />
       </Routes>
+      </div>
+      <Footer />
+      </div>
     </AdminProvider>
   )
 }

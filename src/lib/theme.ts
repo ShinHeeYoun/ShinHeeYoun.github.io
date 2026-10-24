@@ -19,9 +19,19 @@ export function setStoredTheme(theme: Theme): void {
   }
 }
 
+// What a visitor sees first: the theme they chose last time, or else the one their device asks for (a computer or
+// phone set to dark mode gets the dark theme, anything else the light one).
 // Keep in sync with the inline script in index.html, which runs before React to avoid a theme flash.
-export function resolveInitialTheme(stored: Theme | null): Theme {
-  return stored ?? 'dark'
+export function resolveInitialTheme(stored: Theme | null, prefersDark = false): Theme {
+  return stored ?? (prefersDark ? 'dark' : 'light')
+}
+
+export function systemPrefersDark(): boolean {
+  try {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches
+  } catch {
+    return false
+  }
 }
 
 export function applyTheme(theme: Theme): void {

@@ -1,4 +1,8 @@
+import { Server } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import Sparkline from './Sparkline'
 import { SERVER_API_BASE, resolveStatusUrl } from '../lib/serverApi'
 import {
@@ -76,9 +80,9 @@ function useServerStatus(): View {
 function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
     <div>
-      <div className="font-mono text-xs text-muted">{label}</div>
-      <div className="font-mono text-lg font-semibold">{value}</div>
-      {sub && <div className="font-mono text-xs text-muted">{sub}</div>}
+      <div className="text-xs text-muted-foreground">{label}</div>
+      <div className="text-lg font-semibold tabular-nums">{value}</div>
+      {sub && <div className="text-xs text-muted-foreground">{sub}</div>}
     </div>
   )
 }
@@ -86,8 +90,8 @@ function Stat({ label, value, sub }: { label: string; value: string; sub?: strin
 // A thin bar showing how full something is.
 function Bar({ label, percent }: { label: string; percent: number }) {
   return (
-    <div role="img" aria-label={`${label} ${Math.round(percent)}%`} className="mt-1 h-1.5 w-full overflow-hidden rounded bg-border">
-      <div className="h-full bg-accent" style={{ width: `${Math.min(100, percent)}%` }} />
+    <div role="img" aria-label={`${label} ${Math.round(percent)}%`} className="mt-1 h-1.5 w-full overflow-hidden rounded bg-muted">
+      <div className="h-full bg-primary" style={{ width: `${Math.min(100, percent)}%` }} />
     </div>
   )
 }
@@ -95,7 +99,7 @@ function Bar({ label, percent }: { label: string; percent: number }) {
 function Group({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div>
-      <h3 className="font-mono text-xs font-semibold text-accent">{title}</h3>
+      <h3 className="text-sm font-semibold">{title}</h3>
       <dl className="mt-2 space-y-1.5">{children}</dl>
     </div>
   )
@@ -104,9 +108,9 @@ function Group({ title, children }: { title: string; children: ReactNode }) {
 function Row({ label, value, bar }: { label: string; value: string; bar?: { label: string; percent: number } | null }) {
   return (
     <div>
-      <div className="flex items-baseline justify-between gap-3 font-mono text-xs">
-        <dt className="shrink-0 text-muted">{label}</dt>
-        <dd className="text-right">{value}</dd>
+      <div className="flex items-baseline justify-between gap-3 text-xs">
+        <dt className="shrink-0 text-muted-foreground">{label}</dt>
+        <dd className="text-right tabular-nums">{value}</dd>
       </div>
       {bar && <Bar label={bar.label} percent={bar.percent} />}
     </div>
@@ -154,14 +158,12 @@ function Online({ status }: { status: ServerStatus }) {
 
   return (
     <div>
-      <div className="flex flex-wrap items-baseline justify-between gap-2 font-mono text-sm">
-        <span>
-          <span className="text-accent" aria-hidden="true">
-            ●{' '}
-          </span>
+      <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+        <Badge variant="secondary" className="gap-1.5">
+          <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden="true" />
           online
-        </span>
-        <span className="text-muted">
+        </Badge>
+        <span className="text-muted-foreground">
           {status.tomcat} · Java {status.java}
         </span>
       </div>
@@ -178,9 +180,9 @@ function Online({ status }: { status: ServerStatus }) {
             <div
               role="img"
               aria-label={`힙 사용률 ${Math.round(heapPercent)}%`}
-              className="mt-1 h-1.5 w-full overflow-hidden rounded bg-border"
+              className="mt-1 h-1.5 w-full overflow-hidden rounded bg-muted"
             >
-              <div className="h-full bg-accent" style={{ width: `${heapPercent}%` }} />
+              <div className="h-full bg-primary" style={{ width: `${heapPercent}%` }} />
             </div>
           )}
         </div>
@@ -231,7 +233,7 @@ function Online({ status }: { status: ServerStatus }) {
         />
       </div>
 
-      <div className="mt-6 grid gap-6 border-t border-border pt-5 md:grid-cols-3">
+      <div className="mt-6 grid gap-6 border-t pt-5 md:grid-cols-3">
         <Group title="서버 (호스트)">
           <Row label="운영체제" value={[os.name, os.arch].filter(Boolean).join(' ') || '-'} />
           <Row label="서버 가동" value={dash(os.uptimeMs, formatUptime)} />
@@ -287,7 +289,7 @@ function Online({ status }: { status: ServerStatus }) {
         </Group>
       </div>
 
-      <p className="mt-5 font-mono text-[11px] text-muted">
+      <p className="mt-5 text-[11px] text-muted-foreground">
         요청 수와 처리 시간에는 이 카드가 10초마다 보내는 요청도 포함됩니다. 호스트 이름, 경로, IP, 앱 이름은 보여주지
         않습니다.
       </p>
@@ -299,18 +301,31 @@ export default function ServerStatusSection() {
   const view = useServerStatus()
 
   return (
-    <section>
-      <h2 className="text-xl font-semibold">라이브 서버 상태</h2>
-      <div className="card mt-4">
-        {view.kind === 'online' && <Online status={view.status} />}
-        {view.kind === 'loading' && <p className="font-mono text-sm text-muted">서버에 물어보는 중...</p>}
-        {view.kind === 'preparing' && <p className="font-mono text-sm text-muted">서버 연결을 준비하고 있습니다.</p>}
-        {view.kind === 'offline' && (
-          <p className="font-mono text-sm text-muted">
-            서버에 연결할 수 없습니다. 점검 중이거나 꺼져 있을 수 있어요. 이 사이트의 다른 기능에는 영향이 없습니다.
-          </p>
-        )}
-      </div>
+    <section aria-labelledby="server-status-title">
+      <Card>
+        <CardHeader>
+          <CardTitle id="server-status-title" className="flex items-center gap-2 text-xl">
+            <Server className="h-5 w-5 text-primary" aria-hidden="true" />
+            라이브 서버 상태
+          </CardTitle>
+          <CardDescription>따로 운영하는 서버의 상태를 10초마다 불러옵니다.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {view.kind === 'online' && <Online status={view.status} />}
+          {view.kind === 'loading' && (
+            <div className="space-y-3" aria-busy="true">
+              <p className="text-sm text-muted-foreground">서버에 물어보는 중...</p>
+              <Skeleton className="h-16 w-full" />
+            </div>
+          )}
+          {view.kind === 'preparing' && <p className="text-sm text-muted-foreground">서버 연결을 준비하고 있습니다.</p>}
+          {view.kind === 'offline' && (
+            <p className="text-sm text-muted-foreground">
+              서버에 연결할 수 없습니다. 점검 중이거나 꺼져 있을 수 있어요. 이 사이트의 다른 기능에는 영향이 없습니다.
+            </p>
+          )}
+        </CardContent>
+      </Card>
     </section>
   )
 }

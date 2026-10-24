@@ -1,4 +1,9 @@
+import { TriangleAlert } from 'lucide-react'
 import { useId, type ChangeEvent, type ReactNode } from 'react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import HtmlFrame from './HtmlFrame'
 import {
   MAX_HTML_BYTES,
@@ -51,33 +56,24 @@ export default function HtmlEditor({ draft, onChange, note, keptNote, children }
 
   return (
     <div className="mt-6 grid gap-6 lg:grid-cols-2">
-      <div>
-        <div>
-          <label htmlFor={`${id}-title`} className="block text-sm font-medium">
-            제목 {note && <span className="text-xs text-muted">{note}</span>}
-          </label>
-          <input
+      <div className="space-y-5">
+        <div className="space-y-2">
+          <Label htmlFor={`${id}-title`}>
+            제목 {note && <span className="text-xs font-normal text-muted-foreground">{note}</span>}
+          </Label>
+          <Input
             id={`${id}-title`}
             type="text"
             value={draft.title}
             onChange={(event) => onChange({ ...draft, title: event.target.value })}
-            className="mt-1 w-full rounded-md border border-border bg-surface p-2 text-foreground"
           />
-          <p className="mt-1 text-xs text-muted">HTML 파일을 고르면 파일의 제목으로 채워집니다. 고쳐 쓸 수 있어요.</p>
+          <p className="text-xs text-muted-foreground">HTML 파일을 고르면 파일의 제목으로 채워집니다. 고쳐 쓸 수 있어요.</p>
         </div>
 
-        <div className="mt-4">
-          <label htmlFor={`${id}-html`} className="block text-sm font-medium">
-            HTML 파일
-          </label>
-          <input
-            id={`${id}-html`}
-            type="file"
-            accept=".html,.htm,text/html"
-            onChange={chooseHtml}
-            className="mt-1 block w-full text-sm file:mr-3 file:rounded-md file:border file:border-border file:bg-surface file:px-3 file:py-1.5 file:text-foreground hover:file:border-accent"
-          />
-          <p className="mt-1 text-xs text-muted">
+        <div className="space-y-2">
+          <Label htmlFor={`${id}-html`}>HTML 파일</Label>
+          <Input id={`${id}-html`} type="file" accept=".html,.htm,text/html" onChange={chooseHtml} className="cursor-pointer" />
+          <p className="text-xs text-muted-foreground">
             {draft.htmlName
               ? `선택됨: ${draft.htmlName}`
               : draft.html !== null
@@ -86,19 +82,12 @@ export default function HtmlEditor({ draft, onChange, note, keptNote, children }
           </p>
         </div>
 
-        <div className="mt-4">
-          <label htmlFor={`${id}-css`} className="block text-sm font-medium">
-            CSS 파일 <span className="text-xs font-normal text-muted">(선택, 여러 개 가능)</span>
-          </label>
-          <input
-            id={`${id}-css`}
-            type="file"
-            accept=".css,text/css"
-            multiple
-            onChange={chooseCss}
-            className="mt-1 block w-full text-sm file:mr-3 file:rounded-md file:border file:border-border file:bg-surface file:px-3 file:py-1.5 file:text-foreground hover:file:border-accent"
-          />
-          <p className="mt-1 text-xs text-muted">
+        <div className="space-y-2">
+          <Label htmlFor={`${id}-css`}>
+            CSS 파일 <span className="text-xs font-normal text-muted-foreground">(선택, 여러 개 가능)</span>
+          </Label>
+          <Input id={`${id}-css`} type="file" accept=".css,text/css" multiple onChange={chooseCss} className="cursor-pointer" />
+          <p className="text-xs text-muted-foreground">
             {draft.css.length > 0
               ? `선택됨: ${draft.css.map((file) => file.name).join(', ')} — 다시 고르면 바뀝니다.`
               : '고른 CSS는 글 안에 함께 저장됩니다. HTML이 같은 이름의 CSS를 <link>로 부르고 있으면 그 연결은 자동으로 대신합니다.'}
@@ -106,32 +95,37 @@ export default function HtmlEditor({ draft, onChange, note, keptNote, children }
         </div>
 
         {missing.length > 0 && (
-          <p role="status" className="mt-4 rounded-md bg-amber-50 p-2 text-xs text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
-            이 페이지가 부르는 파일이 함께 올라오지 않았습니다: {missing.join(', ')}. 이 파일들은 글에서 불러와지지 않아요.
-            이미지는 data: 주소나 http(s) 주소로 넣고, 스타일은 위의 CSS 파일로 올려 주세요.
-          </p>
+          <Alert role="status">
+            <TriangleAlert />
+            <AlertDescription>
+              이 페이지가 부르는 파일이 함께 올라오지 않았습니다: {missing.join(', ')}. 이 파일들은 글에서 불러와지지 않아요.
+              이미지는 data: 주소나 http(s) 주소로 넣고, 스타일은 위의 CSS 파일로 올려 주세요.
+            </AlertDescription>
+          </Alert>
         )}
         {page !== null && (
-          <p className={`mt-3 text-xs ${problem ? 'text-red-600 dark:text-red-400' : 'text-muted'}`}>
+          <p className={`text-xs ${problem ? 'text-destructive' : 'text-muted-foreground'}`}>
             {problem ?? `크기 ${kb(byteLength(page))} / 최대 ${kb(MAX_HTML_BYTES)}`}
           </p>
         )}
 
-        <div className="mt-4 flex flex-wrap gap-2">{children}</div>
+        <div className="flex flex-wrap gap-2">{children}</div>
       </div>
 
-      <section aria-label="미리보기" className="min-w-0 rounded-md border border-border bg-surface p-5">
-        {page === null ? (
-          <p className="text-sm text-muted">HTML 파일을 선택하면 여기에 표시됩니다.</p>
-        ) : (
-          <>
-            <h1 className="text-2xl font-bold">{draft.title || '(제목 없음)'}</h1>
-            <div className="mt-6">
-              <HtmlFrame html={page} title="미리보기" />
-            </div>
-          </>
-        )}
-      </section>
+      <Card className="min-w-0">
+        <CardContent className="p-5">
+          {page === null ? (
+            <p className="text-sm text-muted-foreground">HTML 파일을 선택하면 여기에 표시됩니다.</p>
+          ) : (
+            <>
+              <h1 className="text-3xl font-bold tracking-tight">{draft.title || '(제목 없음)'}</h1>
+              <div className="mt-6">
+                <HtmlFrame html={page} title="미리보기" />
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

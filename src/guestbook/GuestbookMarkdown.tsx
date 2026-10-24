@@ -53,7 +53,7 @@ function inlineToken(token: Token, depth: number): ReactNode {
     case 'del':
       return <del>{inline((token as Tokens.Del).tokens, depth + 1)}</del>
     case 'codespan':
-      return <code className="rounded bg-surface px-1 font-mono text-[0.9em]">{decode((token as Tokens.Codespan).text)}</code>
+      return <code className="rounded bg-muted px-1 font-mono text-[0.9em]">{decode((token as Tokens.Codespan).text)}</code>
     case 'br':
       return <br />
     case 'link': {
@@ -63,7 +63,7 @@ function inlineToken(token: Token, depth: number): ReactNode {
       return href === null ? (
         <>{children}</>
       ) : (
-        <a href={href} target="_blank" rel="noopener noreferrer nofollow ugc" className="text-accent underline">
+        <a href={href} target="_blank" rel="noopener noreferrer nofollow ugc" className="font-medium text-primary underline underline-offset-2">
           {children}
         </a>
       )
@@ -94,18 +94,18 @@ function block(token: Token, depth: number): ReactNode {
     }
     case 'blockquote':
       return (
-        <blockquote className="my-1 border-l-2 border-border pl-3 text-muted">
+        <blockquote className="my-1 border-l-4 border-highlight pl-3 text-muted-foreground">
           {blocks((token as Tokens.Blockquote).tokens, depth + 1)}
         </blockquote>
       )
     case 'code':
       return (
-        <pre className="my-1 overflow-x-auto rounded bg-surface p-2 font-mono text-[0.9em]">
+        <pre className="my-1 overflow-x-auto rounded-md bg-muted p-2 font-mono text-[0.9em]">
           <code>{(token as Tokens.Code).text}</code>
         </pre>
       )
     case 'hr':
-      return <hr className="my-2 border-border" />
+      return <hr className="my-2" />
     case 'list': {
       const list = token as Tokens.List
       const items = list.items.map((item, i) => <li key={i}>{blocks(item.tokens, depth + 1)}</li>)

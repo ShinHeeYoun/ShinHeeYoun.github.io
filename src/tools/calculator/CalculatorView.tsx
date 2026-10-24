@@ -1,4 +1,6 @@
 import { useReducer } from 'react'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { calculatorReducer, initialState, type Operator } from './controller'
 
 type ButtonDef =
@@ -52,26 +54,30 @@ export default function CalculatorView() {
   }
 
   return (
-    <div className="mx-auto max-w-xs">
-      <div className="mb-4 rounded-md border border-border bg-surface p-4 text-right text-2xl font-mono break-all">
+    <Card className="mx-auto max-w-xs p-4">
+      <div
+        className="mb-4 break-all rounded-lg bg-muted p-4 text-right text-3xl font-semibold tabular-nums"
+        aria-live="polite"
+        aria-label="계산 결과"
+      >
         {state.display}
       </div>
       <div className="grid grid-cols-4 gap-2">
         {BUTTONS.map((button, index) => (
-          <button
+          <Button
             key={index}
             type="button"
+            size="lg"
+            variant={
+              button.kind === 'equals' ? 'default' : button.kind === 'operator' ? 'outline' : button.kind === 'clear' ? 'destructive' : 'secondary'
+            }
             onClick={() => handleClick(button)}
-            className={`rounded-md border p-3 text-lg transition-colors ${
-              button.kind === 'equals'
-                ? 'border-accent bg-accent text-background hover:bg-accent-hover'
-                : 'border-border hover:bg-surface'
-            } ${button.kind === 'clear' ? 'col-span-4' : ''}`}
+            className={`h-14 px-0 text-lg ${button.kind === 'clear' ? 'col-span-4' : ''}`}
           >
             {button.label}
-          </button>
+          </Button>
         ))}
       </div>
-    </div>
+    </Card>
   )
 }

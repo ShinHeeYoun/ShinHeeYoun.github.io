@@ -1,3 +1,7 @@
+import { Play, Plus, X } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { cryptoRng } from '../../lib/random'
 import {
@@ -77,15 +81,15 @@ function Wheel({ entries, rotation, spinning }: { entries: Entry[]; rotation: nu
         </g>
       ) : (
         <>
-          <circle cx={CX} cy={CY} r={RADIUS} className="fill-surface stroke-border" strokeWidth="2" />
-          <text x={CX} y={CY} textAnchor="middle" dominantBaseline="central" fontSize="18" className="fill-muted">
+          <circle cx={CX} cy={CY} r={RADIUS} className="fill-muted stroke-border" strokeWidth="2" />
+          <text x={CX} y={CY} textAnchor="middle" dominantBaseline="central" fontSize="18" className="fill-muted-foreground">
             항목을 {MIN_ITEMS}개 이상 입력하세요
           </text>
         </>
       )}
       <circle cx={CX} cy={CY} r="22" className="fill-background stroke-border" strokeWidth="3" />
       {/* the pointer: fixed, it does not turn with the wheel */}
-      <polygon points="203,6 237,6 220,50" className="fill-accent stroke-background" strokeWidth="3" strokeLinejoin="round" />
+      <polygon points="203,6 237,6 220,50" className="fill-primary stroke-background" strokeWidth="3" strokeLinejoin="round" />
     </svg>
   )
 }
@@ -170,39 +174,37 @@ export default function RouletteView() {
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,30rem)_minmax(0,1fr)]">
       <div>
-        <Wheel entries={entries} rotation={rotation} spinning={spinning} />
-        <button
-          type="button"
-          onClick={spin}
-          disabled={spinning || !ready}
-          className="mt-4 w-full rounded-lg bg-accent px-4 py-4 text-lg font-semibold text-background transition-colors hover:bg-accent-hover disabled:opacity-50"
-        >
+        <Card>
+          <CardContent className="p-4">
+            <Wheel entries={entries} rotation={rotation} spinning={spinning} />
+          </CardContent>
+        </Card>
+        <Button type="button" size="lg" onClick={spin} disabled={spinning || !ready} className="mt-4 h-14 w-full gap-2 text-lg font-semibold">
+          <Play />
           {spinning ? '돌아가는 중...' : '돌리기'}
-        </button>
-        <div role="status" aria-live="polite" className="mt-4 min-h-[5rem]">
+        </Button>
+        <div role="status" aria-live="polite" className="mt-4 min-h-[6rem]">
           {result && (
-            <div className="rounded-lg border border-accent bg-accent/10 p-4">
-              <p className="text-sm text-muted">결과</p>
-              <p className="mt-1 break-words text-3xl font-bold">{result.name}</p>
-              <button
-                type="button"
-                onClick={dropWinner}
-                className="mt-3 rounded-md border border-border bg-surface px-3 py-1.5 text-sm transition-colors hover:border-accent"
-              >
-                이 항목 빼고 다시
-              </button>
-            </div>
+            <Card className="border-primary/50 bg-primary/5">
+              <CardContent className="p-4">
+                <p className="text-sm text-muted-foreground">결과</p>
+                <p className="mt-1 break-words text-3xl font-bold">{result.name}</p>
+                <Button type="button" variant="outline" size="sm" onClick={dropWinner} className="mt-3">
+                  이 항목 빼고 다시
+                </Button>
+              </CardContent>
+            </Card>
           )}
         </div>
       </div>
 
       <div>
         <h2 className="text-lg font-semibold">항목</h2>
-        <p className="mt-1 text-xs text-muted">
+        <p className="mt-1 text-sm text-muted-foreground">
           {MIN_ITEMS}~{MAX_ITEMS}개, 이름은 {MAX_NAME}자까지입니다. 비워 둔 칸은 빼고 돌립니다. 결과는 돌리기 전에 브라우저의 보안
           난수로 정해지고, 모든 항목의 확률이 같습니다.
         </p>
-        <ul className="mt-3 space-y-2">
+        <ul className="mt-4 space-y-2">
           {rows.map((text, i) => (
             <li key={i} className="flex items-center gap-2">
               <span
@@ -210,7 +212,7 @@ export default function RouletteView() {
                 style={{ background: text.trim() === '' ? 'transparent' : sliceColor(entries.findIndex((entry) => entry.row === i)) }}
                 aria-hidden="true"
               />
-              <input
+              <Input
                 ref={(element) => {
                   inputs.current[i] = element
                 }}
@@ -222,40 +224,39 @@ export default function RouletteView() {
                 aria-label={`항목 ${i + 1}`}
                 onChange={(event) => changeRows(setRow(rows, i, event.target.value))}
                 onKeyDown={(event) => onKeyDown(event, i)}
-                className="min-w-0 flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm focus:border-accent focus:outline-none disabled:opacity-60"
+                className="min-w-0 flex-1"
               />
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon"
                 disabled={spinning}
                 onClick={() => changeRows(removeRow(rows, i))}
                 aria-label={`항목 ${i + 1} 지우기`}
-                className="rounded-md border border-border bg-surface px-2.5 py-2 text-sm transition-colors hover:border-accent disabled:opacity-50"
               >
-                ✕
-              </button>
+                <X />
+              </Button>
             </li>
           ))}
         </ul>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <button
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Button
             type="button"
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
             disabled={spinning || rows.length >= MAX_ITEMS}
             onClick={() => {
               focusRow.current = rows.length
               changeRows(addRow(rows))
             }}
-            className="rounded-md border border-border bg-surface px-3 py-1.5 text-sm transition-colors hover:border-accent disabled:opacity-50"
           >
+            <Plus />
             항목 추가
-          </button>
-          <button
-            type="button"
-            disabled={spinning}
-            onClick={() => changeRows(DEFAULT_ROWS)}
-            className="rounded-md border border-border bg-surface px-3 py-1.5 text-sm transition-colors hover:border-accent disabled:opacity-50"
-          >
+          </Button>
+          <Button type="button" variant="outline" size="sm" disabled={spinning} onClick={() => changeRows(DEFAULT_ROWS)}>
             예시로 되돌리기
-          </button>
+          </Button>
         </div>
 
         {history.length > 0 && (
@@ -263,7 +264,7 @@ export default function RouletteView() {
             <h2 className="text-lg font-semibold">지난 결과</h2>
             <ol className="mt-2 list-inside list-decimal space-y-1 text-sm">
               {history.map((name, i) => (
-                <li key={i} className={i === 0 ? 'font-semibold' : 'text-muted'}>
+                <li key={i} className={i === 0 ? 'font-semibold' : 'text-muted-foreground'}>
                   {name}
                 </li>
               ))}

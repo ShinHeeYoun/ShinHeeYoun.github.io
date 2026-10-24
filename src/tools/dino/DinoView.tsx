@@ -409,7 +409,7 @@ export default function DinoView() {
 
   return (
     <div>
-      <p className="mb-3 text-sm text-muted">
+      <p className="mb-3 text-sm text-muted-foreground">
         게임 화면을 클릭한 뒤 ↑ 점프, ↓ 숙이기, Space 불덩이, ← → 감속·증속합니다.
       </p>
       <canvas
@@ -428,25 +428,25 @@ export default function DinoView() {
           e.currentTarget.focus()
           handleKey('ArrowUp')
         }}
-        className="w-full cursor-pointer rounded-md border border-border bg-surface outline-none focus-visible:border-accent"
+        className="w-full cursor-pointer rounded-xl border bg-card shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
       />
       <div
         ref={logRef}
         role="log"
         aria-live="off"
-        className="mt-4 h-56 overflow-y-auto rounded-md border border-border bg-surface p-3 font-mono text-xs leading-5"
+        className="mt-4 h-56 overflow-y-auto rounded-xl border bg-muted/50 p-4 font-mono text-xs leading-5"
       >
-        <div className="text-muted">$ tail -f dino.log</div>
+        <div className="text-muted-foreground">$ tail -f dino.log</div>
         {entries.map((entry) => (
           <div key={entry.id} className="whitespace-pre-wrap break-all">
-            <span className={entry.type === 'event' ? 'text-accent' : 'text-muted'}>
+            <span className={entry.type === 'event' ? 'font-semibold text-primary' : 'text-muted-foreground'}>
               {entry.type === 'event' ? '$' : '>'}
             </span>{' '}
             {entry.text}
           </div>
         ))}
       </div>
-      <p className="mt-3 text-xs text-muted">
+      <p className="mt-3 text-xs text-muted-foreground">
         공룡 그래픽:{' '}
         <a
           href="https://github.com/ShinHeeYoun/ShinHeeYoun.github.io/blob/main/src/tools/dino/CHROMIUM-LICENSE.txt"

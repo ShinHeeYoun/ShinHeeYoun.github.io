@@ -42,7 +42,7 @@ export default function HtmlFrame({ html, title }: { html: string; title: string
       onLoad={() => frame.current?.contentWindow?.postMessage('post-frame-ping', '*')}
       sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox"
       style={{ height }}
-      className="block w-full rounded-md border border-border bg-white"
+      className="block w-full rounded-lg border bg-white"
     />
   )
 }

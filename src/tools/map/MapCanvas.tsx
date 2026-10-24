@@ -188,5 +188,5 @@ export default function MapCanvas({ dark, initial, restoreType, locked, onView, 
     callbacks.current.onJumped() // done: a new map (after a theme change) must not repeat it
   }, [jump, ready])
 
-  return <div ref={box} className="h-[65vh] min-h-[22rem] w-full overflow-hidden rounded-lg border border-border bg-surface" />
+  return <div ref={box} className="h-[65vh] min-h-[22rem] w-full overflow-hidden rounded-xl border bg-muted shadow-sm" />
 }

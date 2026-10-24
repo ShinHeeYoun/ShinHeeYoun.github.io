@@ -1,4 +1,9 @@
 import { useMemo, useState, type ReactNode } from 'react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { renderPostHtml } from '../lib/markdown'
 import MarkdownBody from './MarkdownBody'
 
@@ -21,62 +26,51 @@ export default function PostEditor({ title, body, date, onTitleChange, onBodyCha
 
   return (
     <div className="mt-6 grid gap-6 lg:grid-cols-2">
-      <div>
-        <div>
-          <label htmlFor="editor-title" className="block text-sm font-medium">
-            제목 {note && <span className="text-xs text-muted">{note}</span>}
-          </label>
-          <input
-            id="editor-title"
-            type="text"
-            value={title}
-            onChange={(event) => onTitleChange(event.target.value)}
-            className="mt-1 w-full rounded-md border border-border bg-surface p-2 text-foreground"
-          />
+      <div className="space-y-5">
+        <div className="space-y-2">
+          <Label htmlFor="editor-title">
+            제목 {note && <span className="text-xs font-normal text-muted-foreground">{note}</span>}
+          </Label>
+          <Input id="editor-title" type="text" value={title} onChange={(event) => onTitleChange(event.target.value)} />
         </div>
 
-        <div className="mt-4">
-          <label htmlFor="editor-body" className="block text-sm font-medium">
-            본문 (Markdown)
-          </label>
-          <textarea
+        <div className="space-y-2">
+          <Label htmlFor="editor-body">본문 (Markdown)</Label>
+          <Textarea
             id="editor-body"
             value={body}
             onChange={(event) => onBodyChange(event.target.value)}
             rows={20}
-            className="mt-1 w-full rounded-md border border-border bg-surface p-2 font-mono text-sm text-foreground"
+            className="font-mono"
           />
         </div>
 
-        <div className="mt-4 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => setShown({ title, body, date })}
-            disabled={!title && !body}
-            className="rounded-md border border-accent px-4 py-2 text-accent transition-colors hover:bg-accent hover:text-background disabled:opacity-50"
-          >
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" variant="outline" onClick={() => setShown({ title, body, date })} disabled={!title && !body}>
             미리보기
-          </button>
+          </Button>
           {children}
         </div>
       </div>
 
-      <section aria-label="미리보기" className="min-w-0 rounded-md border border-border bg-surface p-5">
-        {outdated && (
-          <p role="status" className="mb-4 rounded-md bg-amber-50 p-2 text-xs text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
-            내용이 바뀌었습니다. 미리보기를 다시 눌러 갱신하세요.
-          </p>
-        )}
-        {shown ? (
-          <>
-            <h1 className="text-2xl font-bold">{shown.title || '(제목 없음)'}</h1>
-            <p className="mt-1 text-sm text-muted">{shown.date}</p>
-            <MarkdownBody html={html} className="mt-8" />
-          </>
-        ) : (
-          <p className="text-sm text-muted">미리보기를 누르면 여기에 표시됩니다.</p>
-        )}
-      </section>
+      <Card role="region" aria-label="미리보기" className="min-w-0">
+        <CardContent className="p-5">
+          {outdated && (
+            <p role="status" className="mb-4 rounded-md bg-accent p-2 text-xs text-accent-foreground">
+              내용이 바뀌었습니다. 미리보기를 다시 눌러 갱신하세요.
+            </p>
+          )}
+          {shown ? (
+            <>
+              <h1 className="text-3xl font-bold tracking-tight">{shown.title || '(제목 없음)'}</h1>
+              <p className="mt-2 text-sm text-muted-foreground">{shown.date}</p>
+              <MarkdownBody html={html} className="mt-8" />
+            </>
+          ) : (
+            <p className="text-sm text-muted-foreground">미리보기를 누르면 여기에 표시됩니다.</p>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

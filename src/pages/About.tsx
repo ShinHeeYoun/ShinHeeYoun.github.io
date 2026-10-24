@@ -1,3 +1,9 @@
+import { GitBranch, LayoutTemplate, Server, type LucideIcon } from 'lucide-react'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import PageHeader from '../components/PageHeader'
+
 type Item = {
   name: string
   what: string // what the technology is and what it gives us
@@ -40,9 +46,15 @@ const sections: Section[] = [
       },
       {
         name: 'Tailwind CSS',
-        what: '미리 만들어진 작은 클래스(예: px-6, text-muted)를 조합해 스타일을 쓰는 CSS 도구입니다.',
-        how: '색을 CSS 변수(--color-*)로 정의하고, <html>의 dark 클래스에 따라 값만 바꿔서 다크/라이트 테마를 만듭니다. 공통 폭 규칙(.page-width)은 작은 화면에서는 전체 폭, 넓은 화면에서는 72rem으로 제한해 가운데 정렬합니다.',
+        what: '미리 만들어진 작은 클래스(예: px-6, text-muted-foreground)를 조합해 스타일을 쓰는 CSS 도구입니다.',
+        how: '색을 CSS 변수(--primary, --background 등)로 정의하고, <html>의 dark 클래스에 따라 값만 바꿔서 다크/라이트 테마를 만듭니다. 처음 방문하면 기기의 설정(다크 모드 여부)을 따르고, 한 번 고르면 그 선택을 기억합니다. 공통 폭 규칙(.page-width)은 작은 화면에서는 전체 폭, 넓은 화면에서는 72rem으로 제한해 가운데 정렬합니다.',
         files: 'src/index.css · tailwind.config.js',
+      },
+      {
+        name: 'shadcn/ui · Radix UI',
+        what: 'shadcn/ui는 버튼, 카드, 대화상자, 탭 같은 화면 부품의 코드를 내 저장소로 복사해 쓰는 방식의 컴포넌트 모음이고, 그 안의 동작(키보드 조작, 포커스 이동, 접근성)은 Radix UI가 맡습니다.',
+        how: '부품 코드가 src/components/ui에 들어 있어서 필요하면 직접 고칠 수 있습니다. 색은 Coolors 팔레트(#000814, #001d3d, #003566, #ffc300, #ffd60a)에서 골랐고, 밝은 테마는 남색, 어두운 테마는 금색을 주 색으로 씁니다. 글자와 배경 조합이 읽기 쉬운지(WCAG AA, 대비 4.5:1)를 테스트가 index.css의 색 숫자를 읽어서 확인하므로, 색을 바꿔서 대비가 나빠지면 테스트가 실패합니다. 글꼴은 Pretendard를 npm 패키지로 가져와 사이트에 포함합니다.',
+        files: 'src/components/ui · components.json · src/lib/palette.test.ts',
       },
     ],
   },
@@ -175,7 +187,7 @@ const sections: Section[] = [
       {
         name: 'Vitest',
         what: '자바스크립트용 단위 테스트 도구입니다. 함수가 기대한 값을 돌려주는지 자동으로 검사합니다.',
-        how: '화면이 아니라 순수한 로직을 위주로 테스트합니다(node 환경). 계산기, 공룡 게임, 사다리, 룰렛, 지도(거리·면적·퀴즈·주소 링크), Yacht Dice 규칙, 글 머리말·HTML 글 파서, 마크다운 제목 id, 블로그 검색, 서버 응답 해석 등을 확인합니다.',
+        how: '화면이 아니라 순수한 로직을 위주로 테스트합니다(node 환경). 계산기, 공룡 게임, 사다리, 룰렛, 지도(거리·면적·퀴즈·주소 링크), Yacht Dice 규칙, 글 머리말·HTML 글 파서, 마크다운 제목 id, 색 대비(접근성), 블로그 검색, 서버 응답 해석 등을 확인합니다.',
         files: '*.test.ts',
       },
       {
@@ -187,47 +199,73 @@ const sections: Section[] = [
   },
 ]
 
+// The three sentences about the whole structure, each as a card with its own picture.
+const OVERVIEW_ICONS: LucideIcon[] = [LayoutTemplate, GitBranch, Server]
+
 export default function About() {
   return (
-    <main className="page-width py-12">
-      <div className="max-w-3xl">
-        <h1 className="text-2xl font-bold">About</h1>
-        <p className="mt-6 leading-relaxed text-foreground/90">
-          정적 사이트(GitHub Pages)에 서버 연동과 글 관리 기능까지 붙여 보는 개발 연습 프로젝트입니다. 이 문서는 어떤
-          기술을 어디에, 어떻게 썼는지 정리합니다.
-        </p>
+    <main className="page-width py-10 sm:py-12">
+      <PageHeader
+        title="About"
+        description="정적 사이트(GitHub Pages)에 서버 연동과 글 관리 기능까지 붙여 보는 개발 연습 프로젝트입니다. 어떤 기술을 어디에, 어떻게 썼는지 정리합니다."
+      />
 
-        <h2 className="mt-10 text-lg font-semibold">전체 구조</h2>
-        <ul className="mt-4 list-inside list-disc space-y-2 leading-relaxed text-foreground/90">
-          {overview.map((line) => (
-            <li key={line}>{line}</li>
-          ))}
-        </ul>
+      <section aria-labelledby="overview-title">
+        <h2 id="overview-title" className="text-xl font-semibold tracking-tight">
+          전체 구조
+        </h2>
+        <div className="mt-4 grid gap-4 md:grid-cols-3">
+          {overview.map((line, index) => {
+            const Icon = OVERVIEW_ICONS[index] ?? LayoutTemplate
+            const [label, ...rest] = line.split(': ')
+            return (
+              <Card key={line}>
+                <CardHeader>
+                  <span className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <Icon className="h-5 w-5" aria-hidden="true" />
+                  </span>
+                  <CardTitle className="text-base">{label}</CardTitle>
+                  <CardDescription className="leading-relaxed">{rest.join(': ')}</CardDescription>
+                </CardHeader>
+              </Card>
+            )
+          })}
+        </div>
+      </section>
 
-        {sections.map((section) => (
-          <section key={section.title}>
-            <h2 className="mt-10 text-lg font-semibold">{section.title}</h2>
-            <ul className="mt-4 space-y-6">
-              {section.items.map((item) => (
-                <li key={item.name}>
-                  <p className="font-mono text-accent">{item.name}</p>
-                  <dl className="mt-1 space-y-1 leading-relaxed text-foreground/90">
+      {sections.map((section) => (
+        <section key={section.title} className="mt-12" aria-labelledby={`section-${section.title}`}>
+          <h2 id={`section-${section.title}`} className="text-xl font-semibold tracking-tight">
+            {section.title}
+          </h2>
+          <Accordion type="multiple" className="mt-4 rounded-xl border bg-card px-4 sm:px-6">
+            {section.items.map((item) => (
+              <AccordionItem key={item.name} value={item.name}>
+                <AccordionTrigger className="text-left text-base font-semibold">{item.name}</AccordionTrigger>
+                <AccordionContent>
+                  <dl className="space-y-3 leading-relaxed">
                     <div>
-                      <dt className="inline font-semibold">기능 </dt>
-                      <dd className="inline">{item.what}</dd>
+                      <dt className="text-sm font-semibold text-primary">기능</dt>
+                      <dd className="mt-0.5 text-muted-foreground">{item.what}</dd>
                     </div>
                     <div>
-                      <dt className="inline font-semibold">적용 </dt>
-                      <dd className="inline">{item.how}</dd>
+                      <dt className="text-sm font-semibold text-primary">적용</dt>
+                      <dd className="mt-0.5 text-muted-foreground">{item.how}</dd>
                     </div>
                   </dl>
-                  {item.files && <p className="mt-1 break-words font-mono text-xs text-muted">{item.files}</p>}
-                </li>
-              ))}
-            </ul>
-          </section>
-        ))}
-      </div>
+                  {item.files && (
+                    <p className="mt-3 break-words">
+                      <Badge variant="outline" className="whitespace-normal break-all font-mono text-xs font-normal">
+                        {item.files}
+                      </Badge>
+                    </p>
+                  )}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </section>
+      ))}
     </main>
   )
 }

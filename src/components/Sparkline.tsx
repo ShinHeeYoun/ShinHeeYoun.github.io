@@ -24,31 +24,31 @@ export default function Sparkline({ values, label, current, window }: Props) {
 
   return (
     <div>
-      <div className="flex items-baseline justify-between font-mono text-xs">
-        <span className="text-muted">{label}</span>
-        <span>{current}</span>
+      <div className="flex items-baseline justify-between text-xs">
+        <span className="text-muted-foreground">{label}</span>
+        <span className="font-medium tabular-nums">{current}</span>
       </div>
       {values.length < 2 ? (
-        <p className="mt-1 font-mono text-xs text-muted">값을 모으는 중...</p>
+        <p className="mt-1 text-xs text-muted-foreground">값을 모으는 중...</p>
       ) : (
         <svg
           viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
           preserveAspectRatio="none"
           role="img"
           aria-label={`${label}: 최근 ${window}, 현재 ${current}`}
-          className="mt-1 h-10 w-full rounded border border-border bg-background"
+          className="mt-1 h-10 w-full rounded-md border bg-background"
         >
           <polyline
             points={points}
             fill="none"
-            stroke="rgb(var(--color-accent))"
+            stroke="hsl(var(--primary))"
             strokeWidth="1.5"
             vectorEffect="non-scaling-stroke"
             strokeLinejoin="round"
           />
         </svg>
       )}
-      {values.length >= 2 && <p className="mt-1 text-right font-mono text-[11px] text-muted">최근 {window}</p>}
+      {values.length >= 2 && <p className="mt-1 text-right text-[11px] text-muted-foreground">최근 {window}</p>}
     </div>
   )
 }

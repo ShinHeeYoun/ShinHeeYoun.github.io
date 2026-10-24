@@ -1,6 +1,10 @@
+import { Search } from 'lucide-react'
 import { useDeferredValue, useEffect, useMemo, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
+import { Input } from '@/components/ui/input'
+import BlogPreviewCard from '../components/BlogPreviewCard'
 import Highlight from '../components/Highlight'
+import PageHeader from '../components/PageHeader'
 import { posts } from '../lib/posts'
 import { searchPosts, type SearchResult } from '../lib/search'
 
@@ -22,44 +26,41 @@ export default function Blog() {
   const shown = searching ? results : allPosts
 
   return (
-    <main className="page-width py-12">
-      <h1 className="text-2xl font-bold">Blog</h1>
+    <main className="page-width py-10 sm:py-12">
+      <PageHeader title="Blog" description="마크다운과 HTML로 쓴 글입니다. 제목과 본문에서 찾을 수 있어요." />
 
-      <form role="search" className="mt-6 max-w-xl" onSubmit={(event) => event.preventDefault()}>
+      <form role="search" className="max-w-xl" onSubmit={(event) => event.preventDefault()}>
         <label htmlFor="blog-search" className="sr-only">
           글 검색
         </label>
-        <input
-          id="blog-search"
-          type="search"
-          value={text}
-          onChange={(event) => setText(event.target.value)}
-          placeholder="제목과 본문에서 검색"
-          autoComplete="off"
-          className="w-full rounded-md border border-border bg-surface px-3 py-2 font-mono text-sm outline-none focus:border-accent"
-        />
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+          <Input
+            id="blog-search"
+            type="search"
+            value={text}
+            onChange={(event) => setText(event.target.value)}
+            placeholder="제목과 본문에서 검색"
+            autoComplete="off"
+            className="h-11 pl-9"
+          />
+        </div>
       </form>
 
       {searching && (
-        <p role="status" className="mt-4 text-sm text-muted">
+        <p role="status" className="mt-4 text-sm text-muted-foreground">
           {results.length > 0 ? `검색 결과 ${results.length}건` : `'${query}' 검색 결과가 없습니다.`}
         </p>
       )}
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {shown.map(({ post, title, snippet }) => (
-          <Link key={post.slug} to={`/blog/${post.slug}`} className="block">
-            <article className="card">
-              <h2 className="card-title">{title ? <Highlight text={title} /> : post.title}</h2>
-              <p className="mt-1 text-sm text-muted">
-                {post.date}
-                {post.format === 'html' && <span className="tag ml-2">HTML</span>}
-              </p>
-              <p className="mt-2 break-words text-foreground/80">
-                {snippet ? <Highlight text={snippet} /> : post.excerpt}
-              </p>
-            </article>
-          </Link>
+          <BlogPreviewCard
+            key={post.slug}
+            post={post}
+            title={title ? <Highlight text={title} /> : undefined}
+            snippet={snippet ? <Highlight text={snippet} /> : undefined}
+          />
         ))}
       </div>
     </main>
