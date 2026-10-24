@@ -28,6 +28,12 @@ export const tools = [
     description: '주사위 5개를 최대 3번 굴려 12개 칸을 채우는 요트 다이스입니다. 굴리기 버튼을 누르고 있는 동안 주사위 눈이 바뀌다가, 떼는 순간 결정됩니다.',
     wide: true,
   },
+  {
+    id: 'roulette',
+    name: '룰렛',
+    description: '항목을 직접 적고 돌리면 하나가 뽑힙니다. 모든 항목의 확률이 같고, 결과는 돌리기 전에 정해집니다.',
+    wide: true,
+  },
 ] as const satisfies readonly ToolMeta[]
 
 export type ToolId = (typeof tools)[number]['id']
