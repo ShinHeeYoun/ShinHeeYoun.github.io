@@ -5,8 +5,6 @@ import { loadGoogleMaps } from './loader'
 import MapCanvas, { type Jump, type LineSpec, type MarkerSpec } from './MapCanvas'
 import { ExplorePanel, MeasurePanel, QuizPanel, type WeatherState } from './MapPanels'
 import {
-  PLACES,
-  WORLD_PLACE,
   WORLD_VIEW,
   clampLatitude,
   formatCoordinates,
@@ -276,14 +274,6 @@ export default function MapView() {
 
       {mode !== 'quiz' && (
         <div className="mt-3 flex flex-wrap gap-2">
-          <button type="button" onClick={() => goTo(WORLD_PLACE)} className={button}>
-            세계 전체
-          </button>
-          {PLACES.map((place) => (
-            <button key={place.id} type="button" onClick={() => goTo(place)} className={button}>
-              {place.name}
-            </button>
-          ))}
           <button type="button" onClick={locate} disabled={locating} className={button}>
             {locating ? '찾는 중...' : '내 위치'}
           </button>
@@ -332,7 +322,7 @@ export default function MapView() {
         )}
       </div>
 
-      <div className="mt-4">
+      <div className="mt-4 min-h-[14rem]">
         {mode === 'explore' && (
           <ExplorePanel
             picked={picked}

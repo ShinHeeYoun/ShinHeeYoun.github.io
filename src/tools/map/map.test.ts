@@ -2,9 +2,6 @@ import { describe, it, expect } from 'vitest'
 import { mapsScriptUrl } from './loader'
 import {
   MAX_LAT,
-  PLACES,
-  WORLD_PLACE,
-  WORLD_VIEW,
   clampLatitude,
   formatCoordinates,
   plainCoordinates,
@@ -53,39 +50,6 @@ describe('plainCoordinates', () => {
   it('gives numbers that can be pasted into a map search', () => {
     expect(plainCoordinates({ lat: 37.5665, lng: 126.978 })).toBe('37.56650, 126.97800')
     expect(plainCoordinates({ lat: -33.8688, lng: -190 })).toBe('-33.86880, 170.00000')
-  })
-})
-
-describe('PLACES', () => {
-  it('has places with real coordinates and a zoom the map can show', () => {
-    expect(PLACES.length).toBeGreaterThanOrEqual(10)
-    for (const place of PLACES) {
-      expect(place.lat, place.name).toBeGreaterThanOrEqual(-MAX_LAT)
-      expect(place.lat, place.name).toBeLessThanOrEqual(MAX_LAT)
-      expect(place.lng, place.name).toBeGreaterThanOrEqual(-180)
-      expect(place.lng, place.name).toBeLessThanOrEqual(180)
-      expect(place.zoom, place.name).toBeGreaterThanOrEqual(3)
-      expect(place.zoom, place.name).toBeLessThanOrEqual(15)
-    }
-  })
-
-  it('has no two places with the same id or name', () => {
-    expect(new Set(PLACES.map((place) => place.id)).size).toBe(PLACES.length)
-    expect(new Set(PLACES.map((place) => place.name)).size).toBe(PLACES.length)
-  })
-
-  it('knows where a few well-known cities are', () => {
-    const seoul = PLACES.find((place) => place.id === 'seoul')
-    expect(seoul?.lat).toBeCloseTo(37.57, 1)
-    expect(seoul?.lng).toBeCloseTo(126.98, 1)
-    const sydney = PLACES.find((place) => place.id === 'sydney')
-    expect(sydney?.lat).toBeLessThan(0) // south
-    expect(PLACES.find((place) => place.id === 'newyork')?.lng).toBeLessThan(0) // west
-  })
-
-  it('has a view of the whole world to come back to', () => {
-    expect(WORLD_PLACE.zoom).toBe(WORLD_VIEW.zoom)
-    expect(WORLD_PLACE.lat).toBe(WORLD_VIEW.center.lat)
   })
 })
 

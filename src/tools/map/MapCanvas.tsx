@@ -70,6 +70,9 @@ export default function MapCanvas({ dark, initial, restoreType, locked, onView, 
         mapId: 'DEMO_MAP_ID', // needed for the markers; Google's map id for trying things out
         colorScheme: dark ? google.maps.ColorScheme.DARK : google.maps.ColorScheme.LIGHT,
         restriction: { latLngBounds: { north: MAX_LAT, south: -MAX_LAT, west: -180, east: 180 }, strictBounds: true },
+        // The wheel zooms the map, without holding Ctrl (Google's default asks for Ctrl whenever the page can scroll).
+        // On a touch screen a finger on the map would then never scroll the page, so there it takes two fingers.
+        gestureHandling: window.matchMedia('(pointer: coarse)').matches ? 'cooperative' : 'greedy',
         streetViewControl: false,
         mapTypeControl: true,
         fullscreenControl: true,
