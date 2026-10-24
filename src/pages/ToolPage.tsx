@@ -3,6 +3,7 @@ import type { ComponentType } from 'react'
 import CalculatorView from '../tools/calculator/CalculatorView'
 import DinoView from '../tools/dino/DinoView'
 import LadderView from '../tools/ladder/LadderView'
+import MapView from '../tools/map/MapView'
 import RouletteView from '../tools/roulette/RouletteView'
 import YachtView from '../tools/yacht/YachtView'
 import { tools, type ToolId, type ToolMeta } from '../tools/registry'
@@ -12,6 +13,7 @@ const toolViews: Record<ToolId, ComponentType> = {
   dino: DinoView,
   ladder: LadderView,
   roulette: RouletteView,
+  map: MapView,
   yacht: YachtView,
 }
 

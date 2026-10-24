@@ -34,6 +34,12 @@ export const tools = [
     description: '항목을 직접 적고 돌리면 하나가 뽑힙니다. 모든 항목의 확률이 같고, 결과는 돌리기 전에 정해집니다.',
     wide: true,
   },
+  {
+    id: 'map',
+    name: '세계 지도',
+    description: 'Google Maps로 세계 지도를 봅니다. 눌러서 위도·경도와 현지 시각·날씨 보기, 거리와 면적 재기, 내 위치, 화면 링크 공유, 도시 위치 맞히기 퀴즈를 할 수 있습니다.',
+    wide: true,
+  },
 ] as const satisfies readonly ToolMeta[]
 
 export type ToolId = (typeof tools)[number]['id']
