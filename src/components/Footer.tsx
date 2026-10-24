@@ -16,7 +16,7 @@ export default function Footer() {
   return (
     <footer className="mt-16 border-t bg-muted/40">
       <div className="page-width flex flex-col gap-4 py-8 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-        <p>© {new Date().getFullYear()} ShinHeeYoun. 개발 연습 페이지입니다.</p>
+        <p>© {new Date().getFullYear()} ShinHeeYoun</p>
         <nav className="flex items-center gap-4" aria-label="바닥글">
           <Link to="/about" className="hover:text-foreground">
             About

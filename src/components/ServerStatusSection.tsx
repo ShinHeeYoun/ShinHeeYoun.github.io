@@ -308,7 +308,7 @@ export default function ServerStatusSection() {
             <Server className="h-5 w-5 text-primary" aria-hidden="true" />
             라이브 서버 상태
           </CardTitle>
-          <CardDescription>따로 운영하는 서버의 상태를 10초마다 불러옵니다.</CardDescription>
+          <CardDescription>Oracle Cloud Server 상태 검사</CardDescription>
         </CardHeader>
         <CardContent>
           {view.kind === 'online' && <Online status={view.status} />}
