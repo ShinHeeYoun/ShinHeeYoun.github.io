@@ -19,7 +19,7 @@ type Section = {
 const overview = [
   '사이트: React로 만든 정적 파일입니다. GitHub Pages가 그대로 보여주고, 사이트 자체에는 서버 코드가 없습니다.',
   '글 관리: 브라우저가 GitHub API로 저장소에 직접 커밋하면 GitHub Actions가 다시 빌드하고 배포합니다.',
-  '서버 기능: 라이브 서버 상태와 ERS 탭은 따로 운영하는 Oracle Cloud 무료 서버(Tomcat)를 https로 호출합니다.',
+  '서버 기능: 라이브 서버 상태, Yacht Dice 순위, 방명록, ERS 탭은 따로 운영하는 Oracle Cloud 무료 서버(Tomcat, Oracle DB)를 https로 호출합니다.',
 ]
 
 const sections: Section[] = [
@@ -43,6 +43,12 @@ const sections: Section[] = [
         what: '주소에 따라 보여줄 페이지를 바꿔 주는 라우터입니다. HashRouter는 주소의 # 뒤를 경로로 씁니다.',
         how: 'GitHub Pages는 서버 설정을 바꿀 수 없어서, 일반 주소에서 새로고침하면 404가 납니다. # 뒤는 서버로 전달되지 않기 때문에 어느 페이지에서 새로고침해도 괜찮습니다. 대신 글 안의 #목차 링크가 라우터와 충돌해서, 클릭을 가로채 해당 제목으로 스크롤시킵니다.',
         files: 'src/App.tsx · src/components/MarkdownBody.tsx',
+      },
+      {
+        name: '홈 화면과 공통 틀',
+        what: '처음 들어온 사람이 이 사이트에 무엇이 있는지 바로 알 수 있게 하는 첫 화면과, 모든 페이지가 함께 쓰는 위쪽 바와 아래쪽 바입니다.',
+        how: '홈은 소개 문구 없이 내용부터 보여줍니다. 맨 위에 Oracle Cloud 서버의 실시간 상태(Oracle Cloud Server 상태 검사)를 놓고, 그 아래에 Blog, Tools, Guestbook 바로가기와 최근 글 3개를 둡니다. 위쪽 바는 스크롤해도 따라오고, 좁은 화면에서는 메뉴가 옆에서 열리는 패널로 바뀝니다. 관리자로 로그인했을 때만 Admin 메뉴(Write, Edit, Delete)가 생깁니다.',
+        files: 'src/pages/Home.tsx · src/components/NavBar.tsx · src/components/QuickLinks.tsx',
       },
       {
         name: 'Tailwind CSS',
