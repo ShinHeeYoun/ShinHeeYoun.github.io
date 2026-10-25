@@ -9,7 +9,8 @@ export type Post = {
   title: string
   date: string
   excerpt: string
-  body: string // the markdown, or the whole HTML page
+  body: string // the markdown (for a video: its description), or the whole HTML page
+  video?: string // set when the post is a YouTube video: its id
 }
 
 const EXCERPT_LENGTH = 80
@@ -46,8 +47,9 @@ function parsePost(path: string, raw: string): Post {
     path: repoPath,
     title: frontmatter.title,
     date: frontmatter.date,
-    excerpt: toExcerpt(body, frontmatter.title, EXCERPT_LENGTH),
+    excerpt: toExcerpt(body, frontmatter.title, EXCERPT_LENGTH) || (frontmatter.video ? '동영상' : ''),
     body,
+    ...(frontmatter.video ? { video: frontmatter.video } : {}),
   }
 }
 

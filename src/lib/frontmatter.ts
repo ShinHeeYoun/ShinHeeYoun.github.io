@@ -1,6 +1,9 @@
+import { isVideoId } from './youtube'
+
 export type Frontmatter = {
   title: string
   date: string
+  video?: string // a YouTube video id: the post is a video, and its body is the description
 }
 
 export function parseFrontmatter(raw: string): { frontmatter: Frontmatter; body: string } {
@@ -21,12 +24,15 @@ export function parseFrontmatter(raw: string): { frontmatter: Frontmatter; body:
   if (!fields.title || !fields.date) {
     throw new Error('Frontmatter must include title and date')
   }
+  // A video line that is not a video id is left out, so one bad line cannot stop the whole site from building.
+  const video = fields.video && isVideoId(fields.video) ? fields.video : undefined
   return {
-    frontmatter: { title: fields.title, date: fields.date },
+    frontmatter: { title: fields.title, date: fields.date, ...(video ? { video } : {}) },
     body: body.trim(),
   }
 }
 
 export function serializeFrontmatter(frontmatter: Frontmatter, body: string): string {
-  return `---\ntitle: ${frontmatter.title}\ndate: ${frontmatter.date}\n---\n${body}\n`
+  const video = frontmatter.video ? `video: ${frontmatter.video}\n` : ''
+  return `---\ntitle: ${frontmatter.title}\ndate: ${frontmatter.date}\n${video}---\n${body}\n`
 }

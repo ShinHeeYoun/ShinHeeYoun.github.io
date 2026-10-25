@@ -86,6 +86,12 @@ const sections: Section[] = [
         files: 'src/lib/search.ts · src/pages/Blog.tsx',
       },
       {
+        name: 'YouTube 영상 글 (IFrame Player API)',
+        what: 'IFrame Player API는 YouTube 영상을 사이트 안에 넣고, 스크립트로 불러오고 오류를 받아 볼 수 있게 하는 YouTube의 공식 방법입니다. API 키는 필요 없습니다.',
+        how: '관리자가 Write의 영상 탭에 YouTube 주소, 제목, 설명을 넣으면 일반 글과 같은 Markdown 파일로 저장하고, 글 머리말에 video: 영상id 한 줄만 더합니다. 그래서 목록, 검색, 수정, 삭제는 일반 글과 같은 길을 씁니다. 주소는 watch, youtu.be, shorts, embed 형태를 모두 읽고, 영상 id가 11자의 정해진 문자인지 검사한 것만 받아서 이상한 값이 페이지에 들어가지 않습니다. 플레이어는 개인정보 보호 모드 주소(youtube-nocookie.com)로 열고, 브라우저가 소리 있는 자동재생을 막기 때문에 저절로 재생되지는 않습니다. 영상이 삭제됐거나 주인이 퍼가기를 막은 경우 API가 알려 주는 오류 번호로 안내 문구를 보여주고, 스크립트가 막힌 경우(광고 차단 등)에도 안내와 함께 "새 탭에서 열기" 버튼으로 YouTube에서 직접 볼 수 있게 합니다. 블로그 목록의 썸네일은 YouTube 이미지 서버에서 가져옵니다.',
+        files: 'src/lib/youtube.ts · src/lib/youtubeApi.ts · src/components/VideoPlayer.tsx',
+      },
+      {
         name: 'GitHub Contents API',
         what: 'GitHub 저장소의 파일을 HTTP 요청으로 읽고, 쓰고, 지우는 API입니다. 쓰기와 삭제는 커밋으로 남습니다.',
         how: '이 사이트에 서버가 없는데도 글을 관리할 수 있는 이유입니다. 브라우저가 GET, PUT, DELETE 요청을 직접 보내서 글 파일을 만들고 고치고 지웁니다(Write, Edit, Delete 화면).',

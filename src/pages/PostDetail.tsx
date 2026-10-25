@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import HtmlFrame from '../components/HtmlFrame'
 import MarkdownBody from '../components/MarkdownBody'
+import VideoPlayer from '../components/VideoPlayer'
 import { renderPostHtml } from '../lib/markdown'
 import { posts } from '../lib/posts'
 
@@ -44,10 +45,12 @@ export default function PostDetail() {
           <CalendarDays className="h-4 w-4" aria-hidden="true" />
           {post.date}
           {isHtml && <Badge variant="secondary">HTML</Badge>}
+          {post.video && <Badge variant="secondary">영상</Badge>}
         </p>
         <Separator className="my-8" />
+        {post.video && <VideoPlayer id={post.video} title={post.title} />}
         {/* No HTML sanitization: post bodies come only from files in this repo, writable only via a PAT with Contents: write access — same trust level as any other source file. */}
-        {isHtml ? <HtmlFrame html={post.body} title={post.title} /> : <MarkdownBody html={html} />}
+        {isHtml ? <HtmlFrame html={post.body} title={post.title} /> : html && <MarkdownBody html={html} className={post.video ? 'mt-8' : ''} />}
       </div>
     </main>
   )

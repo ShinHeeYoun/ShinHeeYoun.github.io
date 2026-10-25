@@ -11,14 +11,17 @@ import { createOrUpdateFile } from '../lib/github'
 import { serializeFrontmatter } from '../lib/frontmatter'
 import { composeDraft, draftProblem, emptyHtmlDraft, serializeHtmlPost } from '../lib/htmlPost'
 import { generateSlug, getLocalDateString } from '../lib/posts'
+import { parseYoutubeUrl } from '../lib/youtube'
 
-type Format = 'md' | 'html'
+type Format = 'md' | 'html' | 'video'
 
 export default function Write() {
   const { pat } = useAdmin()
   const [format, setFormat] = useState<Format>('md')
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
+  const [videoUrl, setVideoUrl] = useState('')
+  const [description, setDescription] = useState('')
   const [draft, setDraft] = useState(emptyHtmlDraft)
   const [status, setStatus] = useState<Status | null>(null)
   const [isPublishing, setIsPublishing] = useState(false)
@@ -45,6 +48,17 @@ export default function Write() {
     })
   }
 
+  function publishVideo() {
+    const video = parseYoutubeUrl(videoUrl)
+    if (!video) return
+    const date = getLocalDateString()
+    void publish(`src/content/posts/${generateSlug(date)}.md`, serializeFrontmatter({ title, date, video }, description), title, () => {
+      setTitle('')
+      setVideoUrl('')
+      setDescription('')
+    })
+  }
+
   function publishHtml() {
     const page = composeDraft(draft)
     if (page === null) return
@@ -68,11 +82,25 @@ export default function Write() {
           <TabsList>
             <TabsTrigger value="md">Markdown</TabsTrigger>
             <TabsTrigger value="html">HTML</TabsTrigger>
+            <TabsTrigger value="video">영상</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
 
-      {format === 'md' ? (
+      {format === 'video' ? (
+        <PostEditor
+          title={title}
+          body={description}
+          date={getLocalDateString()}
+          onTitleChange={setTitle}
+          onBodyChange={setDescription}
+          video={{ url: videoUrl, onUrlChange: setVideoUrl }}
+        >
+          <Button type="button" onClick={publishVideo} disabled={isPublishing || !title.trim() || parseYoutubeUrl(videoUrl) === null}>
+            {isPublishing ? '게시 중...' : '게시'}
+          </Button>
+        </PostEditor>
+      ) : format === 'md' ? (
         <PostEditor title={title} body={body} date={getLocalDateString()} onTitleChange={setTitle} onBodyChange={setBody}>
           <Button type="button" onClick={publishMarkdown} disabled={isPublishing || !title || !body}>
             {isPublishing ? '게시 중...' : '게시'}

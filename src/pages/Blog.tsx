@@ -27,7 +27,7 @@ export default function Blog() {
 
   return (
     <main className="page-width py-10 sm:py-12">
-      <PageHeader title="Blog" description="마크다운과 HTML로 쓴 글입니다. 제목과 본문에서 찾을 수 있어요." />
+      <PageHeader title="Blog" description="글과 영상이 모여 있습니다. 제목과 본문(영상은 설명)에서 찾을 수 있어요." />
 
       <form role="search" className="max-w-xl" onSubmit={(event) => event.preventDefault()}>
         <label htmlFor="blog-search" className="sr-only">

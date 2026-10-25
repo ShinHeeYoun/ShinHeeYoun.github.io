@@ -12,9 +12,10 @@ import { createOrUpdateFile, getFile } from '../lib/github'
 import { parseFrontmatter, serializeFrontmatter } from '../lib/frontmatter'
 import { composeDraft, draftProblem, parseHtmlPost, serializeHtmlPost, type HtmlDraft } from '../lib/htmlPost'
 import { posts, type Post } from '../lib/posts'
+import { parseYoutubeUrl, watchUrl } from '../lib/youtube'
 
 type Editing =
-  | { format: 'md'; slug: string; path: string; sha: string; date: string; title: string; body: string }
+  | { format: 'md'; slug: string; path: string; sha: string; date: string; title: string; body: string; videoUrl: string | null } // videoUrl: set for a video post
   | { format: 'html'; slug: string; path: string; sha: string; date: string; draft: HtmlDraft }
 
 export default function Edit() {
@@ -37,7 +38,8 @@ export default function Edit() {
         setEditing({ ...common, format: 'html', date, draft: { title, html, htmlName: null, css: [] } })
       } else {
         const { frontmatter, body } = parseFrontmatter(content)
-        setEditing({ ...common, format: 'md', date: frontmatter.date, title: frontmatter.title, body })
+        const videoUrl = frontmatter.video ? watchUrl(frontmatter.video) : null
+        setEditing({ ...common, format: 'md', date: frontmatter.date, title: frontmatter.title, body, videoUrl })
       }
     } catch (error) {
       setStatus({ kind: 'error', text: error instanceof Error ? error.message : '글을 불러오지 못했습니다.' })
@@ -52,7 +54,9 @@ export default function Edit() {
     let title: string
     if (editing.format === 'md') {
       title = editing.title
-      content = serializeFrontmatter({ title, date: editing.date }, editing.body)
+      const video = editing.videoUrl === null ? undefined : parseYoutubeUrl(editing.videoUrl)
+      if (editing.videoUrl !== null && !video) return
+      content = serializeFrontmatter({ title, date: editing.date, ...(video ? { video } : {}) }, editing.body)
     } else {
       const page = composeDraft(editing.draft)
       if (page === null) return
@@ -89,10 +93,21 @@ export default function Edit() {
           body={editing.body}
           date={editing.date}
           note={`(수정 중: ${editing.slug})`}
+          video={
+            editing.videoUrl === null ? undefined : { url: editing.videoUrl, onUrlChange: (videoUrl) => setEditing({ ...editing, videoUrl }) }
+          }
           onTitleChange={(title) => setEditing({ ...editing, title })}
           onBodyChange={(body) => setEditing({ ...editing, body })}
         >
-          <Button type="button" onClick={save} disabled={isSaving || !editing.title || !editing.body}>
+          <Button
+            type="button"
+            onClick={save}
+            disabled={
+              isSaving ||
+              !editing.title ||
+              (editing.videoUrl === null ? !editing.body : parseYoutubeUrl(editing.videoUrl) === null)
+            }
+          >
             {isSaving ? '저장 중...' : 'Update'}
           </Button>
           {cancel}
@@ -127,6 +142,11 @@ export default function Edit() {
                   {post.format === 'html' && (
                     <Badge variant="secondary" className="ml-2">
                       HTML
+                    </Badge>
+                  )}
+                  {post.video && (
+                    <Badge variant="secondary" className="ml-2">
+                      영상
                     </Badge>
                   )}
                 </span>

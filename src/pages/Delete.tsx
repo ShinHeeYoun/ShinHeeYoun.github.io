@@ -60,6 +60,11 @@ export default function Delete() {
                     HTML
                   </Badge>
                 )}
+                {post.video && (
+                  <Badge variant="secondary" className="ml-2">
+                    영상
+                  </Badge>
+                )}
               </span>
               <Button
                 type="button"

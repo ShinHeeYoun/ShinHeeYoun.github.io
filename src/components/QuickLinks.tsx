@@ -5,7 +5,7 @@ import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/ca
 type Item = { to: string; title: string; text: string; icon: LucideIcon }
 
 const ITEMS: Item[] = [
-  { to: '/blog', title: 'Blog', text: '마크다운과 HTML로 쓴 글을 검색하며 읽습니다.', icon: BookOpen },
+  { to: '/blog', title: 'Blog', text: '글과 영상을 검색하며 보고 읽습니다.', icon: BookOpen },
   { to: '/tools', title: 'Tools', text: '계산기, 게임, 룰렛, 세계 지도 같은 작은 도구 모음입니다.', icon: Wrench },
   { to: '/guestbook', title: 'Guestbook', text: '누구나 글과 답글을 남길 수 있는 방명록입니다.', icon: MessagesSquare },
   { to: '/ers', title: 'ERS', text: '따로 운영하는 보고서 서버(ERS) 화면을 이 사이트 안에서 봅니다.', icon: FileSpreadsheet },
