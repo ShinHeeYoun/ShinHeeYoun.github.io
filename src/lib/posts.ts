@@ -13,7 +13,8 @@ export type Post = {
   video?: string // set when the post is a YouTube video: its id
 }
 
-const EXCERPT_LENGTH = 80
+// A card shows as much of this as fits its box and cuts the rest, so it only has to be longer than any box can show.
+const EXCERPT_LENGTH = 600
 
 const files = import.meta.glob('/src/content/posts/*.{md,html}', {
   query: '?raw',
@@ -36,7 +37,7 @@ function parsePost(path: string, raw: string): Post {
   if (path.endsWith('.html')) {
     const { title, date, html } = parseHtmlPost(raw)
     const text = htmlToText(html)
-    const excerpt = text.length > EXCERPT_LENGTH ? `${text.slice(0, EXCERPT_LENGTH)}...` : text
+    const excerpt = text.slice(0, EXCERPT_LENGTH)
     return { slug, format: 'html', path: repoPath, title, date, excerpt, body: html }
   }
 
@@ -47,7 +48,7 @@ function parsePost(path: string, raw: string): Post {
     path: repoPath,
     title: frontmatter.title,
     date: frontmatter.date,
-    excerpt: toExcerpt(body, frontmatter.title, EXCERPT_LENGTH) || (frontmatter.video ? '동영상' : ''),
+    excerpt: toExcerpt(body, frontmatter.title, Infinity).slice(0, EXCERPT_LENGTH) || (frontmatter.video ? '동영상' : ''),
     body,
     ...(frontmatter.video ? { video: frontmatter.video } : {}),
   }
