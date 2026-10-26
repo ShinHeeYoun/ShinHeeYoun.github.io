@@ -1,4 +1,5 @@
 import { Routes, Route } from 'react-router-dom'
+import ClickConfetti from './components/ClickConfetti'
 import Footer from './components/Footer'
 import NavBar from './components/NavBar'
 import { AdminProvider } from './components/AdminContext'
@@ -18,6 +19,7 @@ import Guestbook from './pages/Guestbook'
 export default function App() {
   return (
     <AdminProvider>
+      <ClickConfetti />
       <div className="flex min-h-screen flex-col">
       <NavBar />
       <div className="flex-1">

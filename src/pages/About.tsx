@@ -51,6 +51,12 @@ const sections: Section[] = [
         files: 'src/pages/Home.tsx · src/components/NavBar.tsx · src/components/QuickLinks.tsx',
       },
       {
+        name: '클릭 폭죽 (canvas)',
+        what: 'canvas에 입자를 직접 그려서 만든 효과입니다. 라이브러리 없이 입자의 위치 계산(src/lib/confetti.ts)과 그리기(ClickConfetti.tsx)를 나눠 만들었습니다.',
+        how: '화면 전체를 덮지만 클릭은 통과시키는 투명 canvas를 두고, 빈 바탕을 눌렀을 때만 그 자리에서 노란 입자 36개를 터뜨립니다. "빈 바탕"은 누른 요소에서 페이지까지 올라가며 확인해서, 링크·버튼·입력칸·그림·글자가 있는 요소나 색 또는 테두리가 있는 요소(카드, 위쪽 바)가 하나도 없을 때를 말합니다. 그래서 넓은 화면의 좌우 여백과 좁은 화면의 빈틈에서만 나오고, 사이트 사용에는 영향이 없습니다. 입자는 중력과 공기 저항으로 움직이다가 사라지고, 한꺼번에 420개를 넘지 않으며, 입자가 없으면 화면 갱신(requestAnimationFrame)을 멈춥니다. 기기에서 "동작 줄이기"를 켠 사람에게는 나오지 않습니다.',
+        files: 'src/components/ClickConfetti.tsx · src/lib/confetti.ts · src/lib/blankArea.ts',
+      },
+      {
         name: 'Tailwind CSS',
         what: '미리 만들어진 작은 클래스(예: px-6, text-muted-foreground)를 조합해 스타일을 쓰는 CSS 도구입니다.',
         how: '색을 CSS 변수(--primary, --background 등)로 정의하고, <html>의 dark 클래스에 따라 값만 바꿔서 다크/라이트 테마를 만듭니다. 처음 방문하면 기기의 설정(다크 모드 여부)을 따르고, 한 번 고르면 그 선택을 기억합니다. 공통 폭 규칙(.page-width)은 작은 화면에서는 전체 폭, 넓은 화면에서는 72rem으로 제한해 가운데 정렬합니다.',

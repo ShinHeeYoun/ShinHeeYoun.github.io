@@ -41,12 +41,12 @@ export default function PostDetail() {
           </Link>
         </Button>
         <h1 className="mt-4 text-3xl font-bold leading-tight tracking-tight sm:text-4xl">{post.title}</h1>
-        <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
           <CalendarDays className="h-4 w-4" aria-hidden="true" />
           {post.date}
           {isHtml && <Badge variant="secondary">HTML</Badge>}
           {post.video && <Badge variant="secondary">영상</Badge>}
-        </p>
+        </div>
         <Separator className="my-8" />
         {post.video && <VideoPlayer id={post.video} title={post.title} />}
         {/* No HTML sanitization: post bodies come only from files in this repo, writable only via a PAT with Contents: write access — same trust level as any other source file. */}
