@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/breadcrumb'
 import CalculatorView from '../tools/calculator/CalculatorView'
 import DinoView from '../tools/dino/DinoView'
+import DualView from '../tools/dual/DualView'
 import LadderView from '../tools/ladder/LadderView'
 import MapView from '../tools/map/MapView'
 import RouletteView from '../tools/roulette/RouletteView'
@@ -23,6 +24,7 @@ const toolViews: Record<ToolId, ComponentType> = {
   ladder: LadderView,
   roulette: RouletteView,
   map: MapView,
+  dual: DualView,
   yacht: YachtView,
 }
 

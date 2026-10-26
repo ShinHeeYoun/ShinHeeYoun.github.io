@@ -7,7 +7,7 @@ export type ToolMeta = {
 }
 
 // Names of lucide-react icons. They are looked up in src/pages/Tools.tsx, so that this file stays free of React.
-export type ToolIcon = 'calculator' | 'gamepad' | 'shuffle' | 'dice' | 'roulette' | 'map'
+export type ToolIcon = 'calculator' | 'gamepad' | 'shuffle' | 'dice' | 'roulette' | 'map' | 'database'
 
 export const tools = [
   {
@@ -41,6 +41,13 @@ export const tools = [
     name: '룰렛',
     description: '항목을 직접 적고 돌리면 하나가 뽑힙니다. 모든 항목의 확률이 같고, 결과는 돌리기 전에 정해집니다.',
     icon: 'roulette',
+    wide: true,
+  },
+  {
+    id: 'dual',
+    name: 'Oracle DUAL 생성기',
+    description: '행·열 개수와 필드명을 정하면 테스트용 Oracle DUAL 쿼리를 만들어 줍니다. 반복문(CONNECT BY LEVEL)과 일반문(UNION ALL), 랜덤 더미 데이터를 지원하고 표와 SQL이 실시간으로 바뀝니다.',
+    icon: 'database',
     wide: true,
   },
   {

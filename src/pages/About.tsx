@@ -152,8 +152,14 @@ const sections: Section[] = [
       {
         name: '로직과 화면 분리 (controller)',
         what: '계산 규칙(로직)과 화면 그리기(뷰)를 나눠서 만드는 방식입니다.',
-        how: '계산기, 공룡 게임, 사다리타기, 룰렛, 세계 지도, Yacht Dice 모두 "현재 상태와 입력을 받아 새 상태를 돌려주는" 순수 함수를 controller.ts에 두고, 화면 컴포넌트는 그 결과를 그리기만 합니다. 화면 없이 규칙만 테스트할 수 있습니다.',
-        files: 'src/tools/calculator · src/tools/dino · src/tools/ladder · src/tools/roulette · src/tools/map · src/tools/yacht',
+        how: '계산기, 공룡 게임, 사다리타기, 룰렛, Oracle DUAL 생성기, 세계 지도, Yacht Dice 모두 "현재 상태와 입력을 받아 새 상태를 돌려주는" 순수 함수를 controller.ts에 두고, 화면 컴포넌트는 그 결과를 그리기만 합니다. 화면 없이 규칙만 테스트할 수 있습니다.',
+        files: 'src/tools/calculator · src/tools/dino · src/tools/ladder · src/tools/roulette · src/tools/dual · src/tools/map · src/tools/yacht',
+      },
+      {
+        name: 'Oracle DUAL 생성기',
+        what: '행·열 개수와 필드명을 정하면 테스트에 쓸 Oracle 샘플 쿼리(SELECT ... FROM DUAL)를 만들어 주는 도구입니다.',
+        how: '표의 칸을 고치면 SQL이 바로 다시 만들어집니다. 일반문은 모든 행을 각각 SELECT ... FROM DUAL로 쓰고 UNION ALL로 합치며 첫 행에만 AS 필드명을 붙입니다. 반복문은 한 행만 쓰고 CONNECT BY LEVEL <= 횟수로 그 행을 정한 횟수만큼 반복합니다. 쿼리 끝에는 다른 쿼리에 붙여 쓸 수 있도록 세미콜론을 붙이지 않습니다. 값은 안전하게 옮깁니다: 문자는 작은따옴표로 감싸고 안의 따옴표는 두 번 써서(\'\') 값이 쿼리를 깨뜨리지 못하게 하고, 빈 칸은 NULL로 씁니다. UNION ALL은 같은 열의 자료형이 모든 행에서 같아야 하므로, 열의 모든 값이 숫자일 때만 숫자로 쓰고 하나라도 섞이면 그 열 전체를 문자로 씁니다(007처럼 앞에 0이 있는 값도 문자). 필드명이 DATE, LEVEL 같은 Oracle 예약어이거나 공백·한글이 들어 있으면 큰따옴표로 감싸고, 비워 두면 COL1, COL2...로 채웁니다. 값 앞에 =를 붙이면 SQL이 그대로 들어가서 =LEVEL로 순번 열을 만들 수 있습니다. 더미 데이터는 브라우저의 보안 난수로 만든 영문 글자나 정해진 자릿수의 숫자입니다.',
+        files: 'src/tools/dual',
       },
       {
         name: '사다리타기 (SVG)',

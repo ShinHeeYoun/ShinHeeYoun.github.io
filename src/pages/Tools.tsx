@@ -1,4 +1,4 @@
-import { ArrowRight, Calculator, Dices, Gamepad2, Globe2, Shuffle, Target, type LucideIcon } from 'lucide-react'
+import { ArrowRight, Calculator, Database, Dices, Gamepad2, Globe2, Shuffle, Target, type LucideIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import PageHeader from '../components/PageHeader'
@@ -11,6 +11,7 @@ export const TOOL_ICONS: Record<ToolIcon, LucideIcon> = {
   dice: Dices,
   roulette: Target,
   map: Globe2,
+  database: Database,
 }
 
 export default function Tools() {
