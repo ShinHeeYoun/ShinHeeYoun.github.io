@@ -12,9 +12,10 @@ export type ToolIcon = 'calculator' | 'gamepad' | 'shuffle' | 'dice' | 'roulette
 export const tools = [
   {
     id: 'calculator',
-    name: '계산기',
-    description: '기본 사칙연산을 지원하는 버튼식 계산기입니다.',
+    name: '공학용 계산기',
+    description: '삼각함수·로그·제곱근·팩토리얼·괄호를 지원하는 공학용 계산기입니다. 키보드로 수식을 바로 입력할 수 있고 계산 기록이 남습니다.',
     icon: 'calculator',
+    wide: true,
   },
   {
     id: 'dino',
