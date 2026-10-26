@@ -176,14 +176,14 @@ export default function DualView() {
         </CardContent>
       </Card>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="space-y-6">
         <Card className="min-w-0">
           <CardHeader className="pb-3">
             <CardTitle className="text-base">
               표 <span className="text-sm font-normal text-muted-foreground">({mode === 'loop' ? '1행을 반복' : `${rows}행`} × {columns}열)</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-3 px-4">
             <div className="max-h-[32rem] overflow-auto rounded-md border">
               <table className="w-full border-collapse text-sm">
                 <thead className="sticky top-0 z-10 bg-muted">
@@ -192,13 +192,13 @@ export default function DualView() {
                       #
                     </th>
                     {Array.from({ length: columns }, (_, column) => (
-                      <th key={column} scope="col" className="min-w-32 p-1.5 text-left align-top">
+                      <th key={column} scope="col" className="min-w-[5.5rem] p-1.5 text-left align-top">
                         <Input
                           aria-label={`${column + 1}번째 열의 필드명`}
                           placeholder={defaultName(column)}
                           value={names[column] ?? ''}
                           onChange={(event) => setNames((old) => withName(old, column, event.target.value))}
-                          className="h-8 font-mono text-xs font-semibold"
+                          className="h-8 px-2 font-mono text-xs font-semibold"
                         />
                         <Badge variant="secondary" className="mt-1 font-normal">
                           {kinds[column] === 'number' ? '숫자' : '문자'}
@@ -221,7 +221,7 @@ export default function DualView() {
                               aria-label={`${row + 1}행 ${column + 1}열`}
                               value={text}
                               onChange={(event) => setCells((old) => withCell(old, row, column, event.target.value))}
-                              className={cn('h-8 font-mono text-xs', isExpression(text) && 'text-primary')}
+                              className={cn('h-8 px-2 font-mono text-xs', isExpression(text) && 'text-primary')}
                             />
                           </td>
                         )
@@ -245,7 +245,7 @@ export default function DualView() {
           </CardContent>
         </Card>
 
-        <Card className="min-w-0 self-start lg:sticky lg:top-20">
+        <Card className="min-w-0">
           <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-base">SQL</CardTitle>
             <Button type="button" size="sm" className="gap-1.5" onClick={() => void copy()}>
@@ -254,7 +254,7 @@ export default function DualView() {
             </Button>
           </CardHeader>
           <CardContent className="space-y-3">
-            <pre aria-label="만들어진 SQL" className="max-h-[32rem] overflow-auto rounded-md border bg-muted/50 p-4 font-mono text-xs leading-relaxed">
+            <pre aria-label="만들어진 SQL" className="whitespace-pre-wrap break-words rounded-md border bg-muted/50 p-4 font-mono text-xs leading-relaxed">
               {sql}
             </pre>
             {notes.map((note) => (
